@@ -2,6 +2,7 @@
 -- " " for identifiers
 
 -- using Unix Time for dates
+-- sqlite says b.p. is to index child keys
 
 -- sqlite does not enforce foreign keys by default 
 -- will need to set this up w/in C++ code
