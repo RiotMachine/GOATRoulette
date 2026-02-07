@@ -10,7 +10,7 @@ PRAGMA foreign_keys = true;
 
 
 CREATE TABLE franchise (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY
 ) STRICT;
 
 
@@ -19,7 +19,7 @@ CREATE TABLE team (
     startDate    INTEGER NOT NULL,
     endDate      INTEGER,
     name         TEXT NOT NULL,
-  PRIMARY KEY (franchise_id, startDate),
+  PRIMARY KEY (franchise_id, startDate)
 ) STRICT, WITHOUT ROWID;
 
 CREATE INDEX idx_franchise_id
@@ -34,16 +34,16 @@ CREATE TABLE season (
     regularSeason_length INTEGER NOT NULL
         CHECK (regularSeason_length >= 0),
     length               INTEGER NOT NULL
-        CHECK (length >= regularSeason_length),
+        CHECK (length >= regularSeason_length)
 ) STRICT;
 
 
 CREATE TABLE stage (
     season_id   INTEGER NOT NULL REFERENCES season,
-    stageNumber INTEGER NOT NULL
+    stageNumber INTEGER NOT NULL,
     isPlayoff   INTEGER NOT NULL DEFAULT FALSE
         CHECK (isPlayoff IN (TRUE, FALSE)),
-  PRIMARY KEY (season_id, stageNumber),
+  PRIMARY KEY (season_id, stageNumber)
 ) STRICT, WITHOUT ROWID;
 
 CREATE INDEX idx_season_id
@@ -52,7 +52,7 @@ CREATE INDEX idx_season_id
 CREATE TRIGGER tgr_new_stageNumber_not_incremental
   BEFORE INSERT ON stage
     WHEN NEW.stageNumber != (1 + IFNULL(
-      SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id), 0)
+      (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id), 0))
     BEGIN
       SELECT RAISE (ABORT, 'Stages must monotonically increase');
     END;
@@ -93,7 +93,7 @@ CREATE TABLE game (
         CHECK (awayScore >=0),
     stageNumber   INTEGER NOT NULL,
     season_id     INTEGER NOT NULL,
-  FOREIGN KEY (stageNumber, season_id) REFERENCES stage (stageNumber, season_id),
+  FOREIGN KEY (stageNumber, season_id) REFERENCES stage (stageNumber, season_id)
 ) STRICT;
 
 CREATE INDEX idx_home_id
@@ -109,11 +109,11 @@ CREATE VIEW view_databaseFlow (
     season_id,
     stage_number,
     isPlayoffStage,
-    game_id,
+    game_id
 ) AS SELECT season.id, stage.stageNumber, stage.isPlayoff, game.id
     FROM season
       INNER JOIN stage ON season.id = stage.season_id
-      INNER JOIN game  ON season_id = game.season_id
+      INNER JOIN game  ON season.id = game.season_id AND stage.stageNumber = game.stageNumber
     ORDER BY season.id DESC, stage.stageNumber ASC;
 
 
