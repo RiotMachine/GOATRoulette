@@ -84,7 +84,8 @@ CREATE TRIGGER tgr_new_stage_set_isPlayoff
 CREATE TABLE game (
     id            INTEGER PRIMARY KEY,
     home_id       INTEGER NOT NULL REFERENCES franchise,
-    away_id       INTEGER NOT NULL REFERENCES franchise,
+    away_id       INTEGER NOT NULL REFERENCES franchise
+        CHECK (away_id != home_id),
     atNeutralSite INTEGER NOT NULL DEFAULT FALSE
         CHECK (atNeutralSite IN (TRUE, FALSE)),
     homeScore     INTEGER NOT NULL
@@ -119,5 +120,6 @@ CREATE VIEW view_databaseFlow (
 
 -- prevent new games for inactive franchises
 -- prevent new teams for inactive franchises
--- prevent a team from playing itself
 -- how do we know the winner of a playoff round?
+-- how do we know which team info to print for a given game?
+-- isPlayoff currently becomes stale if regularSeason_length changes
