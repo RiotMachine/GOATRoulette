@@ -51,8 +51,8 @@ CREATE INDEX idx_season_id
 
 CREATE TRIGGER tgr_new_stageNumber_not_incremental
   BEFORE INSERT ON stage
-    WHEN NEW.stageNumber != (1 +
-      (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id))
+    WHEN NEW.stageNumber != (1 + IFNULL(
+      SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id), 0)
     BEGIN
       SELECT RAISE (ABORT, 'Stages must monotonically increase');
     END;
