@@ -40,7 +40,7 @@ CREATE TABLE season (
 
 CREATE TABLE stage (
     season_id   INTEGER NOT NULL REFERENCES season,
-    stageNumber INTEGER NOT NULL,
+    stageNumber INTEGER NOT NULL
     isPlayoff   INTEGER NOT NULL DEFAULT FALSE
         CHECK (isPlayoff IN (TRUE, FALSE)),
   PRIMARY KEY (season_id, stageNumber),
@@ -49,37 +49,35 @@ CREATE TABLE stage (
 CREATE INDEX idx_season_id
   ON stage(season_id);
 
-CREATE TRIGGER tgr_new_stageNumber
+CREATE TRIGGER tgr_new_stageNumber_not_incremental
   BEFORE INSERT ON stage
-    WHEN NEW.stageNumber > (SELECT length FROM season WHERE id = NEW.season_id)
+    WHEN NEW.stageNumber != (1 +
+      (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id))
+    BEGIN
+      SELECT RAISE (ABORT, 'Stages must monotonically increase');
+    END;
+
+CREATE TRIGGER tgr_new_stageNumber_exceeds_length
+  BEFORE INSERT ON stage
+    WHEN NEW.stageNumber >
+      (SELECT length FROM season WHERE id = NEW.season_id)
     BEGIN
       SELECT RAISE (ROLLBACK, 'Stage number is greater than season.length');
     END;
 
-CREATE TRIGGER tgr_modify_stageNumber
+CREATE TRIGGER tgr_modify_stageNumber_not_allowed
   BEFORE UPDATE OF stageNumber ON stage
-    WHEN NEW.stageNumber > (SELECT length FROM season WHERE id = NEW.season_id)
     BEGIN
-      SELECT RAISE (ROLLBACK, 'Stage number is greater than season.length');
+      SELECT RAISE (ABORT, 'Modifying a stage''s number is not allowed.');
     END;
 
-CREATE TRIGGER tgr_newStage_setPlayoffBool
+CREATE TRIGGER tgr_new_stage_set_isPlayoff
   AFTER INSERT ON stage
     WHEN NEW.stageNumber >
       (SELECT regularSeason_length FROM season WHERE id = NEW.season_id)
     BEGIN
       UPDATE stage SET isPlayoff = TRUE WHERE season_id = NEW.season_id
         AND stageNumber = NEW.stageNumber;
-    END;
-
-CREATE TRIGGER tgr_modifyStage_setPlayoffBool
-  AFTER UPDATE ON STAGE
-    WHEN NEW.stageNumber != OLD.stageNumber
-    BEGIN
-      UPDATE stage SET isPlayoff = IFF(stageNumber >
-          (SELECT regularSeason_length FROM season WHERE id = NEW.season_id),
-        TRUE, FALSE)
-      WHERE season_id = NEW.season_id AND stageNumber = NEW.stageNumber;
     END;
 
 
@@ -105,7 +103,21 @@ CREATE INDEX idx_away_id
 CREATE INDEX idx_stageNumber_and_season_id
   ON game (stageNumber, season_id);
 
-CREATE UNIQUE INDEX idx_home_id_and_away_id
-  ON game(home_id, away_id);
+
+-- Season(desc) | Stage(asc) | isPlayoff | Game
+CREATE VIEW view_databaseFlow (
+    season_id,
+    stage_number,
+    isPlayoffStage,
+    game_id,
+) AS SELECT season.id, stage.stageNumber, stage.isPlayoff, game.id
+    FROM season
+      INNER JOIN stage ON season.id = stage.season_id
+      INNER JOIN game  ON season_id = game.season_id
+    ORDER BY season.id DESC, stage.stageNumber ASC;
+
+
 -- prevent new games for inactive franchises
 -- prevent new teams for inactive franchises
+-- prevent a team from playing itself
+-- how do we know the winner of a playoff round?
