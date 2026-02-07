@@ -123,3 +123,5 @@ CREATE VIEW view_databaseFlow (
 -- how do we know the winner of a playoff round?
 -- how do we know which team info to print for a given game?
 -- isPlayoff currently becomes stale if regularSeason_length changes
+-- need logic to handle situation when season.length or regularSeason_length
+--   changes
