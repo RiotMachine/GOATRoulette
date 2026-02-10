@@ -125,3 +125,4 @@ CREATE VIEW view_databaseFlow (
 -- isPlayoff currently becomes stale if regularSeason_length changes
 -- need logic to handle situation when season.length or regularSeason_length
 --   changes
+-- is there an overflow risk in using Unix time?
