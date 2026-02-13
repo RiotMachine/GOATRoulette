@@ -2,6 +2,10 @@
 -- " " for identifiers
 
 -- using Unix Time for dates
+-- sqlite uses 64 bit ints so type-safe
+-- https://www.sqlite.org/datatype3.html
+-- https://www.sqlite.org/floatingpoint.html
+
 -- sqlite says b.p. is to index child keys
 
 -- sqlite does not enforce foreign keys by default 
@@ -120,9 +124,10 @@ CREATE VIEW view_databaseFlow (
 
 -- prevent new games for inactive franchises
 -- prevent new teams for inactive franchises
+
 -- how do we know the winner of a playoff round?
 -- how do we know which team info to print for a given game?
+
 -- isPlayoff currently becomes stale if regularSeason_length changes
 -- need logic to handle situation when season.length or regularSeason_length
 --   changes
--- is there an overflow risk in using Unix time?
