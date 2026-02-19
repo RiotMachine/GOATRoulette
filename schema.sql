@@ -71,7 +71,8 @@ CREATE TRIGGER tgr_new_stageNumber_exceeds_length
     WHEN NEW.stageNumber >
       (SELECT length FROM season WHERE id = NEW.season_id)
     BEGIN
-      SELECT RAISE (ROLLBACK, 'Stage number cannot be greater than season.length');
+      SELECT RAISE (ROLLBACK,
+      'Stage number cannot be greater than season.length');
     END;
 
 CREATE TRIGGER tgr_modify_stageNumber_not_allowed
@@ -94,7 +95,8 @@ CREATE TRIGGER tgr_mod_season_len
     WHEN NEW.length <
       (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.id)
     BEGIN
-      SELECT RAISE (ABORT, 'Season length cannot be less than season''s max stage.stageNumber');
+      SELECT RAISE (ABORT,
+      'Season length cannot be less than season''s max stage.stageNumber');
     END;
 
 CREATE TRIGGER tgr_mod_season_len_set_isPlayoff
@@ -129,6 +131,46 @@ CREATE INDEX idx_away_id
 CREATE INDEX idx_stageNumber_and_season_id
   ON game (stageNumber, season_id);
 
+CREATE TRIGGER tgr_new_game.startDate_outside_season
+  BEFORE INSERT ON game
+    WHEN NEW.startDate NOT BETWEEN
+      (SELECT startDate FROM season WHERE id = NEW.season_id)
+    AND
+      (SELECT endDate FROM season WHERE id = NEW.season_id)
+    BEGIN
+      SELECT RAISE(ROLLBACK,
+      'Game must occur between season.startDate and season.endDate');
+    END;
+
+CREATE TRIGGER tgr_mod_game.startDate_outside_season
+  BEFORE UPDATE OF startDate ON game
+    WHEN NEW.startDate NOT BETWEEN
+      (SELECT startDate FROM season WHERE id = NEW.season_id)
+    AND
+      (SELECT endDate FROM season WHERE id = NEW.season_id)
+    BEGIN
+      SELECT RAISE(ABORT,
+      'Game must occur between season.startDate and season.endDate');
+    END;
+
+CREATE TRIGGER tgr_mod_season_startDate
+  BEFORE UPDATE OF startDate on season
+    WHEN NEW.startDate >
+      (SELECT MIN(startDate) FROM game WHERE season_id = NEW.id)
+    BEGIN
+      SELECT RAISE(ABORT,
+      'Setting season startDate to this value would cause invalid game dates');
+    END;
+
+CREATE TRIGGER tgr_mod_season_endDate
+  BEFORE UPDATE of endDate on season
+    WHEN NEW.endDate <
+      (SELECT MAX(startDate) FROM game WHERE season_id = NEW.id)
+    BEGIN
+      SELECT RAISE(ABORT,
+      'Setting season endDate to this value would cause invalid game dates');
+    END;
+
 
 -- Season(desc) | Stage(asc) | isPlayoff | Game
 CREATE VIEW view_databaseFlow (
@@ -143,9 +185,6 @@ CREATE VIEW view_databaseFlow (
     ORDER BY season.id DESC, stage.stageNumber ASC;
 
 
-
 -- how do we know the winner of a playoff round?
--- how to record games that start but are cancelled?
 
--- nice-to-haves
--- 1) view that combines game deets with team deets for printing
+-- create view that combines game deets with team deets for printing
