@@ -17,14 +17,16 @@ CREATE TABLE franchise (
     id         INTEGER PRIMARY KEY,
     startDate  INTEGER NOT NULL,
     endDate    INTEGER
+        CHECK (endDate > startDate OR endDate IS NULL)
 ) STRICT;
 
 
 CREATE TABLE team (
-    franchise_id INTEGER NOT NULL REFERENCES franchise,
-    startDate    INTEGER NOT NULL,
-    endDate      INTEGER,
-    name         TEXT NOT NULL,
+    franchise_id  INTEGER NOT NULL REFERENCES franchise,
+    startDate     INTEGER NOT NULL,
+    endDate       INTEGER
+        CHECK (endDate > startDate OR endDate IS NULL),
+    name          TEXT NOT NULL,
   PRIMARY KEY (franchise_id, startDate)
 ) STRICT, WITHOUT ROWID;
 
@@ -33,6 +35,18 @@ CREATE INDEX idx_franchise_id
 
 CREATE UNIQUE INDEX idx_endDate_null
   ON team(franchise_id) WHERE endDate IS NULL;
+
+-- *add NULL handling
+CREATE TRIGGER tgr_new_team_outside_franchise_start_or_end
+  BEFORE INSERT ON team
+    WHEN NEW.startDate <
+      (SELECT startDate FROM franchise WHERE id = NEW.franchise_id)
+    OR NEW.endDate >
+      (SELECT endDate FROM franchise WHERE id = NEW.franchise_id)
+    BEGIN
+      SELECT RAISE (ROLLBACK,
+      'Team must exist between franchise start and end dates')
+    END;
 
 
 CREATE TABLE season (
