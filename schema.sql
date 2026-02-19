@@ -14,7 +14,9 @@ PRAGMA foreign_keys = true;
 
 
 CREATE TABLE franchise (
-    id INTEGER PRIMARY KEY
+    id         INTEGER PRIMARY KEY,
+    startDate  INTEGER NOT NULL,
+    endDate    INTEGER
 ) STRICT;
 
 
@@ -38,7 +40,10 @@ CREATE TABLE season (
     regularSeason_length INTEGER NOT NULL
         CHECK (regularSeason_length >= 0),
     length               INTEGER NOT NULL
-        CHECK (length >= regularSeason_length)
+        CHECK (length >= regularSeason_length),
+    startDate            INTEGER NOT NULL,
+    endDate              INTEGER NOT NULL
+        CHECK (endDate > startDate)
 ) STRICT;
 
 
@@ -66,7 +71,7 @@ CREATE TRIGGER tgr_new_stageNumber_exceeds_length
     WHEN NEW.stageNumber >
       (SELECT length FROM season WHERE id = NEW.season_id)
     BEGIN
-      SELECT RAISE (ROLLBACK, 'Stage number is greater than season.length');
+      SELECT RAISE (ROLLBACK, 'Stage number cannot be greater than season.length');
     END;
 
 CREATE TRIGGER tgr_modify_stageNumber_not_allowed
@@ -84,6 +89,21 @@ CREATE TRIGGER tgr_new_stage_set_isPlayoff
         AND stageNumber = NEW.stageNumber;
     END;
 
+CREATE TRIGGER tgr_mod_season_len
+  BEFORE UPDATE OF length ON season
+    WHEN NEW.length <
+      (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.id)
+    BEGIN
+      SELECT RAISE (ABORT, 'Season length cannot be less than season''s max stage.stageNumber');
+    END;
+
+CREATE TRIGGER tgr_mod_season_len_set_isPlayoff
+  AFTER UPDATE OF regularSeason_length ON season
+    WHEN NEW.regularSeason_length != OLD.regularSeason_length
+    BEGIN
+      UPDATE stage SET isPlayoff = TRUE WHERE stageNumber > NEW.regularSeason_length;
+    END;
+
 
 CREATE TABLE game (
     id            INTEGER PRIMARY KEY,
@@ -98,6 +118,7 @@ CREATE TABLE game (
         CHECK (awayScore >=0),
     stageNumber   INTEGER NOT NULL,
     season_id     INTEGER NOT NULL,
+    startDate     INTEGER NOT NULL,
   FOREIGN KEY (stageNumber, season_id) REFERENCES stage (stageNumber, season_id)
 ) STRICT;
 
@@ -122,12 +143,9 @@ CREATE VIEW view_databaseFlow (
     ORDER BY season.id DESC, stage.stageNumber ASC;
 
 
--- prevent new games for inactive franchises
--- prevent new teams for inactive franchises
 
 -- how do we know the winner of a playoff round?
--- how do we know which team info to print for a given game?
+-- how to record games that start but are cancelled?
 
--- isPlayoff currently becomes stale if regularSeason_length changes
--- need logic to handle situation when season.length or regularSeason_length
---   changes
+-- nice-to-haves
+-- 1) view that combines game deets with team deets for printing
