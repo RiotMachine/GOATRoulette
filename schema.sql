@@ -36,16 +36,29 @@ CREATE INDEX idx_franchise_id
 CREATE UNIQUE INDEX idx_endDate_null
   ON team(franchise_id) WHERE endDate IS NULL;
 
--- *add NULL handling
-CREATE TRIGGER tgr_new_team_outside_franchise_start_or_end
+CREATE TRIGGER tgr_new_team_before_franchise_start
   BEFORE INSERT ON team
     WHEN NEW.startDate <
       (SELECT startDate FROM franchise WHERE id = NEW.franchise_id)
-    OR NEW.endDate >
-      (SELECT endDate FROM franchise WHERE id = NEW.franchise_id)
     BEGIN
       SELECT RAISE (ROLLBACK,
-      'Team must exist between franchise start and end dates')
+      'Team cannot exist before franchise start date');
+    END;
+
+CREATE TRIGGER tgr_new_team_after_franchise_end
+  BEFORE INSERT ON team
+    WHEN
+      CASE
+        WHEN (SELECT endDate FROM franchise WHERE id = NEW.franchise_id) IS NULL
+          THEN FALSE
+        WHEN NEW.endDate IS NULL
+          THEN TRUE
+        ELSE
+          (SELECT endDate FROM franchise WHERE id = NEW.franchise_id) < NEW.endDate
+      END
+    BEGIN
+      SELECT RAISE (ROLLBACK,
+      'Team cannot exist after franchise end date');
     END;
 
 
