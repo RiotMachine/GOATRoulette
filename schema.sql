@@ -47,15 +47,10 @@ CREATE TRIGGER tgr_new_team_before_franchise_start
 
 CREATE TRIGGER tgr_new_team_after_franchise_end
   BEFORE INSERT ON team
-    WHEN
-      CASE
-        WHEN (SELECT endDate FROM franchise WHERE id = NEW.franchise_id) IS NULL
-          THEN FALSE
-        WHEN NEW.endDate IS NULL
-          THEN TRUE
-        ELSE
-          (SELECT endDate FROM franchise WHERE id = NEW.franchise_id) < NEW.endDate
-      END
+    WHEN EXISTS
+      (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
+        AND endDate IS NOT NULL
+        AND (NEW.endDate IS NULL OR franchise.endDate < NEW.endDate))
     BEGIN
       SELECT RAISE (ROLLBACK,
       'Team cannot exist after franchise end date');
@@ -79,6 +74,26 @@ CREATE TRIGGER tgr_mod_franchise_end
     BEGIN
       SELECT RAISE (ABORT,
       'A franchise cannot end before one of its teams');
+    END;
+
+CREATE TRIGGER tgr_mod_team_start
+  BEFORE UPDATE OF startDate on team
+    WHEN NEW.startDate <
+      (SELECT startDate FROM franchise WHERE id = NEW.franchise_id)
+    BEGIN
+      SELECT RAISE (ABORT,
+      'A team cannot start before its franchise');
+    END;
+
+CREATE TRIGGER tgr_mod_team_end
+  BEFORE UPDATE of endDate on team
+    WHEN EXISTS
+      (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
+        AND endDate IS NOT NULL
+        AND (NEW.endDate IS NULL OR franchise.endDate < NEW.endDate))
+    BEGIN
+      SELECT RAISE (ABORT,
+      'A team cannot end after its franchise');
     END;
 
 
