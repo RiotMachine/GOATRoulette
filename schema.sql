@@ -61,6 +61,26 @@ CREATE TRIGGER tgr_new_team_after_franchise_end
       'Team cannot exist after franchise end date');
     END;
 
+CREATE TRIGGER tgr_mod_franchise_start
+  BEFORE UPDATE OF startDate ON franchise
+    WHEN NEW.startDate >
+      (SELECT MIN(startDate) FROM team WHERE franchise_id = NEW.id)
+    BEGIN
+      SELECT RAISE (ABORT,
+      'A franchise cannot start after one of its teams');
+    END;
+
+CREATE TRIGGER tgr_mod_franchise_end
+  BEFORE UPDATE OF endDate ON franchise
+    WHEN NEW.endDate IS NOT NULL
+      AND EXISTS
+        (SELECT 1 FROM teams WHERE franchise_id = NEW.id
+          AND (endDate IS NULL OR endDate > NEW.endDate))
+    BEGIN
+      SELECT RAISE (ABORT,
+      'A franchise cannot end before one of its teams');
+    END;
+
 
 CREATE TABLE season (
     id                   INTEGER PRIMARY KEY,
@@ -181,7 +201,7 @@ CREATE TRIGGER tgr_mod_game_startDate_outside_season
     END;
 
 CREATE TRIGGER tgr_mod_season_startDate
-  BEFORE UPDATE OF startDate on season
+  BEFORE UPDATE OF startDate ON season
     WHEN NEW.startDate >
       (SELECT MIN(startDate) FROM game WHERE season_id = NEW.id)
     BEGIN
@@ -190,7 +210,7 @@ CREATE TRIGGER tgr_mod_season_startDate
     END;
 
 CREATE TRIGGER tgr_mod_season_endDate
-  BEFORE UPDATE of endDate on season
+  BEFORE UPDATE OF endDate ON season
     WHEN NEW.endDate <
       (SELECT MAX(startDate) FROM game WHERE season_id = NEW.id)
     BEGIN
