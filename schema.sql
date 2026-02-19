@@ -69,7 +69,7 @@ CREATE TRIGGER tgr_mod_franchise_end
   BEFORE UPDATE OF endDate ON franchise
     WHEN NEW.endDate IS NOT NULL
       AND EXISTS
-        (SELECT 1 FROM teams WHERE franchise_id = NEW.id
+        (SELECT 1 FROM team WHERE franchise_id = NEW.id
           AND (endDate IS NULL OR endDate > NEW.endDate))
     BEGIN
       SELECT RAISE (ABORT,
@@ -165,7 +165,10 @@ CREATE TRIGGER tgr_mod_season_len_set_isPlayoff
   AFTER UPDATE OF regularSeason_length ON season
     WHEN NEW.regularSeason_length != OLD.regularSeason_length
     BEGIN
-      UPDATE stage SET isPlayoff = TRUE WHERE stageNumber > NEW.regularSeason_length;
+      UPDATE stage SET isPlayoff = TRUE
+        WHERE stageNumber > NEW.regularSeason_length;
+      UPDATE stage SET isPlayoff = FALSE
+        WHERE stageNumber <= NEW.regularSeason_length;
     END;
 
 
@@ -183,7 +186,7 @@ CREATE TABLE game (
     stageNumber   INTEGER NOT NULL,
     season_id     INTEGER NOT NULL,
     startDate     INTEGER NOT NULL,
-  FOREIGN KEY (stageNumber, season_id) REFERENCES stage (stageNumber, season_id)
+  FOREIGN KEY (season_id, stageNumber) REFERENCES stage (season_id, stageNumber)
 ) STRICT;
 
 CREATE INDEX idx_home_id
@@ -195,24 +198,20 @@ CREATE INDEX idx_stageNumber_and_season_id
 
 CREATE TRIGGER tgr_new_game_startDate_outside_season
   BEFORE INSERT ON game
-    WHEN NEW.startDate NOT BETWEEN
-      (SELECT startDate FROM season WHERE id = NEW.season_id)
-    AND
-      (SELECT endDate FROM season WHERE id = NEW.season_id)
     BEGIN
       SELECT RAISE(ROLLBACK,
-      'Game must occur between season.startDate and season.endDate');
+      'Game must occur between season.startDate and season.endDate')
+      FROM season WHERE id = NEW.season_id
+        AND NEW.startDate NOT BETWEEN startDate AND endDate;
     END;
 
 CREATE TRIGGER tgr_mod_game_startDate_outside_season
   BEFORE UPDATE OF startDate ON game
-    WHEN NEW.startDate NOT BETWEEN
-      (SELECT startDate FROM season WHERE id = NEW.season_id)
-    AND
-      (SELECT endDate FROM season WHERE id = NEW.season_id)
     BEGIN
       SELECT RAISE(ABORT,
-      'Game must occur between season.startDate and season.endDate');
+      'Game must occur between season.startDate and season.endDate')
+      FROM season WHERE id = NEW.season_id
+        AND NEW.startDate NOT BETWEEN startDate AND endDate;
     END;
 
 CREATE TRIGGER tgr_mod_season_startDate
