@@ -131,7 +131,7 @@ CREATE INDEX idx_away_id
 CREATE INDEX idx_stageNumber_and_season_id
   ON game (stageNumber, season_id);
 
-CREATE TRIGGER tgr_new_game.startDate_outside_season
+CREATE TRIGGER tgr_new_game_startDate_outside_season
   BEFORE INSERT ON game
     WHEN NEW.startDate NOT BETWEEN
       (SELECT startDate FROM season WHERE id = NEW.season_id)
@@ -142,7 +142,7 @@ CREATE TRIGGER tgr_new_game.startDate_outside_season
       'Game must occur between season.startDate and season.endDate');
     END;
 
-CREATE TRIGGER tgr_mod_game.startDate_outside_season
+CREATE TRIGGER tgr_mod_game_startDate_outside_season
   BEFORE UPDATE OF startDate ON game
     WHEN NEW.startDate NOT BETWEEN
       (SELECT startDate FROM season WHERE id = NEW.season_id)
