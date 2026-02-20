@@ -1,3 +1,10 @@
+-- Aborting if we're modifying
+-- Rollbacking if we're adding
+-- If we're running a simulation or uploading a db
+--     our base data is all probs f-ed up
+-- If we're modifying the db
+--     not every surgical change invalidates other changes
+
 -- Teams must exist during associated Franchise
 -- If end-date is NULL, team/franchise is extant
 CREATE TRIGGER tgr_new_team_before_franchise_start
@@ -69,7 +76,8 @@ CREATE TRIGGER tgr_mod_team_end
     WHEN NEW.stageNumber != (1 + IFNULL(
       (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id), 0))
     BEGIN
-      SELECT RAISE (ABORT, 'Stages must monotonically increase');
+      SELECT RAISE (ROLLBACK, 
+      'Stages must monotonically increase');
     END;
 
 CREATE TRIGGER tgr_new_stageNumber_exceeds_length
@@ -84,7 +92,8 @@ CREATE TRIGGER tgr_new_stageNumber_exceeds_length
 CREATE TRIGGER tgr_modify_stageNumber_not_allowed
   BEFORE UPDATE OF stageNumber ON stage
     BEGIN
-      SELECT RAISE (ABORT, 'Modifying a stage''s number is not allowed.');
+      SELECT RAISE (ABORT, 
+      'Modifying a stage''s number is not allowed.');
     END;
 
 CREATE TRIGGER tgr_mod_season_len
@@ -103,18 +112,29 @@ CREATE TRIGGER tgr_new_stage_set_isPlayoff
     WHEN NEW.stageNumber >
       (SELECT regularSeason_length FROM season WHERE id = NEW.season_id)
     BEGIN
-      UPDATE stage SET isPlayoff = TRUE WHERE season_id = NEW.season_id
-        AND stageNumber = NEW.stageNumber;
+      UPDATE stage SET isPlayoff = TRUE 
+        WHERE season_id = NEW.season_id
+          AND stageNumber = NEW.stageNumber;
     END;
 
-CREATE TRIGGER tgr_mod_season_len_set_isPlayoff
+CREATE TRIGGER tgr_mod_regularSeason_shorter_set_isPlayoff
   AFTER UPDATE OF regularSeason_length ON season
-    WHEN NEW.regularSeason_length != OLD.regularSeason_length
+    WHEN NEW.regularSeason_length < OLD.regularSeason_length
     BEGIN
       UPDATE stage SET isPlayoff = TRUE
-        WHERE stageNumber > NEW.regularSeason_length;
+        WHERE stageNumber > NEW.regularSeason_length
+          AND stageNumber <= OLD.regularSeason_length
+          AND season_id = NEW.season_id;
+    END;
+
+CREATE TRIGGER tgr_mod_seasonLength_longer_set_isPlayoff
+  AFTER UPDATE OF regularSeason_length ON season
+    WHEN NEW.regularSeason_length > OLD.regularSeason_length
+    BEGIN
       UPDATE stage SET isPlayoff = FALSE
-        WHERE stageNumber <= NEW.regularSeason_length;
+        WHERE stageNumber > OLD.regularSeason_length
+          AND stageNumber <= NEW.regularSeason_length
+          AND season_id = NEW.season_id;
     END;
 
 
