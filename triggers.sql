@@ -21,7 +21,7 @@ CREATE TRIGGER tgr_new_team_after_franchise_end
     WHEN EXISTS
       (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
         AND endDate IS NOT NULL
-        AND (NEW.endDate IS NULL OR franchise.endDate < NEW.endDate))
+        AND (NEW.endDate IS NULL OR endDate < NEW.endDate))
     BEGIN
       SELECT RAISE (ROLLBACK,
       'Team cannot exist after franchise end date');
@@ -61,7 +61,7 @@ CREATE TRIGGER tgr_mod_team_end
     WHEN EXISTS
       (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
         AND endDate IS NOT NULL
-        AND (NEW.endDate IS NULL OR franchise.endDate < NEW.endDate))
+        AND (NEW.endDate IS NULL OR endDate < NEW.endDate))
     BEGIN
       SELECT RAISE (ABORT,
       'A team cannot end after its franchise');
