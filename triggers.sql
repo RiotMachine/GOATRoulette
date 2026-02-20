@@ -141,10 +141,10 @@ CREATE TRIGGER tgr_mod_seasonLength_longer_set_isPlayoff
 -- Game needs to occur during a season
 CREATE TRIGGER tgr_new_game_startDate_outside_season
   BEFORE INSERT ON game
-    WHEN NEW.startDate NOT BETWEEN
-      (SELECT startDate FROM season WHERE id = NEW.season_id)
-    AND
-      (SELECT endDate FROM season WHERE id = NEW.season_id)
+    WHEN EXISTS
+      (SELECT 1 FROM season
+        WHERE id = NEW.season_id
+          AND (NEW.startDate < startDate OR NEW.startDate > endDate))
     BEGIN
       SELECT RAISE(ROLLBACK,
       'Game must occur between season.startDate and season.endDate');
@@ -152,10 +152,10 @@ CREATE TRIGGER tgr_new_game_startDate_outside_season
 
 CREATE TRIGGER tgr_mod_game_startDate_outside_season
   BEFORE UPDATE OF startDate ON game
-    WHEN NEW.startDate NOT BETWEEN
-      (SELECT startDate FROM season WHERE id = NEW.season_id)
-    AND
-      (SELECT endDate FROM season WHERE id = NEW.season_id)
+    WHEN EXISTS
+      (SELECT 1 FROM season
+        WHERE id = NEW.season_id
+          AND (NEW.startDate < startDate OR NEW.startDate > endDate))
     BEGIN
       SELECT RAISE(ABORT,
       'Game must occur between season.startDate and season.endDate');
@@ -178,3 +178,8 @@ CREATE TRIGGER tgr_mod_season_endDate
       SELECT RAISE(ABORT,
       'Setting season endDate to this value would cause invalid game dates');
     END;
+
+
+-- A franchise needs to have a team when it plays a game
+CREATE TRIGGER tgr_add_game_need_team
+  BEFORE INSERT ON game
