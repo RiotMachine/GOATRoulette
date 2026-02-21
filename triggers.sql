@@ -1,6 +1,6 @@
--- Aborting if we're modifying
 -- Rollbacking if we're adding
--- If we're running a simulation or uploading a db
+-- Aborting if we're modifying
+-- If we're pushing a simulation or uploading a db
 --     our base data is all probs f-ed up
 -- If we're modifying the db
 --     not every surgical change invalidates other changes
@@ -48,7 +48,7 @@ CREATE TRIGGER tgr_mod_franchise_end
     END;
 
 CREATE TRIGGER tgr_mod_team_start
-  BEFORE UPDATE OF startDate on team
+  BEFORE UPDATE OF startDate ON team
     WHEN NEW.startDate <
       (SELECT startDate FROM franchise WHERE id = NEW.franchise_id)
     BEGIN
@@ -57,7 +57,7 @@ CREATE TRIGGER tgr_mod_team_start
     END;
 
 CREATE TRIGGER tgr_mod_team_end
-  BEFORE UPDATE of endDate on team
+  BEFORE UPDATE OF endDate ON team
     WHEN EXISTS
       (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
         AND endDate IS NOT NULL
@@ -68,10 +68,45 @@ CREATE TRIGGER tgr_mod_team_end
     END;
 
 
+-- Franchise can only have one team at any given time
+CREATE TRIGGER tgr_add_team_franchise_would_have_two
+  BEFORE INSERT ON team
+    WHEN EXISTS (
+      SELECT 1 FROM team 
+        WHERE franchise_id = NEW.franchise_id
+        AND (
+          (NEW.startDate < endDate OR endDate IS NULL) 
+          AND 
+          (NEW.endDate > startDate OR NEW.endDate IS NULL)
+        )
+      )
+    BEGIN
+      SELECT RAISE (ROLLBACK,
+      'A franchise can only have one team at a time');
+    END;
+
+CREATE TRIGGER tgr_mod_team_franchise_would_have_two
+  BEFORE UPDATE OF startDate, endDate ON team
+    WHEN EXISTS (
+      SELECT 1 FROM team 
+        WHERE franchise_id = NEW.franchise_id
+        AND startDate != OLD.startDate
+        AND (
+          (NEW.startDate < endDate OR endDate IS NULL) 
+          AND 
+          (NEW.endDate > startDate OR NEW.endDate IS NULL)
+        )
+      )
+    BEGIN
+      SELECT RAISE (ABORT,
+      'A franchise can only have one team at a time');
+    END;
+
+
 -- Stages must monotonically increase (1, 2, 3...)
 -- They also must occur during a season
 -- Season length tracks num of stages in a season
-    CREATE TRIGGER tgr_new_stageNumber_not_incremental
+CREATE TRIGGER tgr_new_stageNumber_not_incremental
   BEFORE INSERT ON stage
     WHEN NEW.stageNumber != (1 + IFNULL(
       (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id), 0))
