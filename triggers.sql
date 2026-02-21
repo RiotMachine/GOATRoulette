@@ -253,3 +253,22 @@ CREATE TRIGGER tgr_mod_game_need_team
       SELECT RAISE(ABORT,
       'A franchise must have a team when the game was played');
     END;
+
+
+-- Cant modify a team's start/end if it would orphan a game
+CREATE TRIGGER tgr_mod_team_orphans_game
+  BEFORE UPDATE OF franchise_id, startDate, endDate ON team
+    WHEN EXISTS (
+      SELECT 1 FROM game
+        WHERE (home_id = OLD.franchise_id OR away_id = OLD.franchise_id)
+        AND startDate >= OLD.startDate
+        AND (startDate <= OLD.endDate OR OLD.endDate IS NULL)
+        AND (
+          startDate < NEW.startDate
+          OR (startDate > NEW.endDate AND NEW.endDate IS NOT NULL)
+        )
+    )
+    BEGIN
+      SELECT RAISE(ABORT,
+      'Modifying this team in this way would orphan a game');
+    END;
