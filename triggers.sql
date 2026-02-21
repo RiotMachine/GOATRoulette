@@ -218,3 +218,38 @@ CREATE TRIGGER tgr_mod_season_endDate
 -- A franchise needs to have a team when it plays a game
 CREATE TRIGGER tgr_add_game_need_team
   BEFORE INSERT ON game
+    WHEN NOT EXISTS (
+      SELECT 1 FROM team
+        WHERE franchise_id = NEW.home_id
+          AND NEW.startDate >= startDate
+          AND (NEW.startDate <= endDate OR endDate IS NULL)
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM team
+        WHERE franchise_id = NEW.away_id
+          AND NEW.startDate >= startDate
+          AND (NEW.startDate <= endDate OR endDate IS NULL)
+    )
+    BEGIN
+      SELECT RAISE(ROLLBACK,
+      'A franchise must have a team when the game was played');
+    END;
+
+CREATE TRIGGER tgr_mod_game_need_team
+  BEFORE UPDATE OF home_id, away_id, startDate ON game
+    WHEN NOT EXISTS (
+      SELECT 1 FROM team
+        WHERE franchise_id = NEW.home_id 
+          AND NEW.startDate >= startDate
+          AND (NEW.startDate <= endDate OR endDate IS NULL)
+    )
+    OR NOT EXISTS (
+      SELECT 1 FROM team
+        WHERE franchise_id = NEW.away_id
+          AND NEW.startDate >= startDate
+          AND (NEW.startDate <= endDate OR endDate IS NULL)
+    )
+    BEGIN
+      SELECT RAISE(ABORT,
+      'A franchise must have a team when the game was played');
+    END;
