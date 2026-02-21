@@ -86,7 +86,7 @@ CREATE TRIGGER tgr_add_team_franchise_would_have_two
     END;
 
 CREATE TRIGGER tgr_mod_team_franchise_would_have_two
-  BEFORE UPDATE OF startDate, endDate ON team
+  BEFORE UPDATE OF franchise_id, startDate, endDate ON team
     WHEN EXISTS (
       SELECT 1 FROM team 
         WHERE franchise_id = NEW.franchise_id
