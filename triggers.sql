@@ -5,6 +5,14 @@
 -- If we're modifying the db
 --     not every surgical change invalidates other changes
 
+-- franchiseStart < franchiseEnd
+-- teamStart      < teamEnd
+-- seasonStart    < seasonEnd
+-- franchiseStart <= teamStart < teamEnd <= franchiseEnd
+-- teamStart      <= gameTime <= teamEnd
+-- seasonStart    <= gameTime <= seasonEnd
+
+
 -- Teams must exist during associated Franchise
 -- If end-date is NULL, team/franchise is extant
 CREATE TRIGGER tgr_new_team_before_franchise_start
