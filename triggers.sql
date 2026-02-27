@@ -278,7 +278,7 @@ CREATE TRIGGER tgr_mod_game_need_team
 
 -- Cant modify a team's start/end if it would orphan a game
 CREATE TRIGGER tgr_mod_team_orphans_game
-  BEFORE UPDATE OF franchise_id, startDate, endDate ON team
+  BEFORE UPDATE OF startDate, endDate ON team
     WHEN EXISTS (
       SELECT 1 FROM game
         WHERE (home_id = OLD.franchise_id OR away_id = OLD.franchise_id)
