@@ -56,7 +56,7 @@ CREATE TRIGGER tgr_mod_franchise_end
     END;
 
 CREATE TRIGGER tgr_mod_team_start
-  BEFORE UPDATE OF startDate ON team
+  BEFORE UPDATE OF startDate, franchise_id ON team
     WHEN NEW.startDate <
       (SELECT startDate FROM franchise WHERE id = NEW.franchise_id)
     BEGIN
@@ -65,11 +65,12 @@ CREATE TRIGGER tgr_mod_team_start
     END;
 
 CREATE TRIGGER tgr_mod_team_end
-  BEFORE UPDATE OF endDate ON team
-    WHEN EXISTS
-      (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
+  BEFORE UPDATE OF endDate, franchise_id ON team
+    WHEN EXISTS (
+      SELECT 1 FROM franchise WHERE id = NEW.franchise_id
         AND endDate IS NOT NULL
-        AND (NEW.endDate IS NULL OR endDate < NEW.endDate))
+        AND (NEW.endDate IS NULL OR endDate < NEW.endDate)
+      )
     BEGIN
       SELECT RAISE (ABORT,
       'A team cannot end after its franchise');
