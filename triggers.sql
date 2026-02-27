@@ -1,7 +1,7 @@
 -- Rollbacking if we're adding
 -- Aborting if we're modifying
 -- If we're pushing a simulation or uploading a db
---     our base data is all probs f-ed up
+--     our base data is probs f-ed up
 -- If we're modifying the db
 --     not every surgical change invalidates other changes
 
@@ -21,7 +21,7 @@ CREATE TRIGGER tgr_new_team_after_franchise_end
     WHEN EXISTS
       (SELECT 1 FROM franchise WHERE id = NEW.franchise_id
         AND endDate IS NOT NULL
-        AND (NEW.endDate IS NULL OR endDate < NEW.endDate))
+        AND (NEW.endDate IS NULL OR franchise.endDate < NEW.endDate))
     BEGIN
       SELECT RAISE (ROLLBACK,
       'Team cannot exist after franchise end date');
@@ -72,12 +72,12 @@ CREATE TRIGGER tgr_mod_team_end
 CREATE TRIGGER tgr_add_team_franchise_would_have_two
   BEFORE INSERT ON team
     WHEN EXISTS (
-      SELECT 1 FROM team 
+      SELECT 1 FROM team
         WHERE franchise_id = NEW.franchise_id
         AND (
-          (NEW.startDate < endDate OR endDate IS NULL) 
-          AND 
-          (NEW.endDate > startDate OR NEW.endDate IS NULL)
+          (NEW.startDate <= endDate OR endDate IS NULL)
+          AND
+          (NEW.endDate >= startDate OR NEW.endDate IS NULL)
         )
       )
     BEGIN
@@ -88,13 +88,13 @@ CREATE TRIGGER tgr_add_team_franchise_would_have_two
 CREATE TRIGGER tgr_mod_team_franchise_would_have_two
   BEFORE UPDATE OF franchise_id, startDate, endDate ON team
     WHEN EXISTS (
-      SELECT 1 FROM team 
+      SELECT 1 FROM team
         WHERE franchise_id = NEW.franchise_id
         AND startDate != OLD.startDate
         AND (
-          (NEW.startDate < endDate OR endDate IS NULL) 
-          AND 
-          (NEW.endDate > startDate OR NEW.endDate IS NULL)
+          (NEW.startDate <= endDate OR endDate IS NULL)
+          AND
+          (NEW.endDate >= startDate OR NEW.endDate IS NULL)
         )
       )
     BEGIN
@@ -111,7 +111,7 @@ CREATE TRIGGER tgr_new_stageNumber_not_incremental
     WHEN NEW.stageNumber != (1 + IFNULL(
       (SELECT MAX(stageNumber) FROM stage WHERE season_id = NEW.season_id), 0))
     BEGIN
-      SELECT RAISE (ROLLBACK, 
+      SELECT RAISE (ROLLBACK,
       'Stages must monotonically increase');
     END;
 
@@ -127,7 +127,7 @@ CREATE TRIGGER tgr_new_stageNumber_exceeds_length
 CREATE TRIGGER tgr_modify_stageNumber_not_allowed
   BEFORE UPDATE OF stageNumber ON stage
     BEGIN
-      SELECT RAISE (ABORT, 
+      SELECT RAISE (ABORT,
       'Modifying a stage''s number is not allowed.');
     END;
 
@@ -147,7 +147,7 @@ CREATE TRIGGER tgr_new_stage_set_isPlayoff
     WHEN NEW.stageNumber >
       (SELECT regularSeason_length FROM season WHERE id = NEW.season_id)
     BEGIN
-      UPDATE stage SET isPlayoff = TRUE 
+      UPDATE stage SET isPlayoff = TRUE
         WHERE season_id = NEW.season_id
           AND stageNumber = NEW.stageNumber;
     END;
@@ -239,7 +239,7 @@ CREATE TRIGGER tgr_mod_game_need_team
   BEFORE UPDATE OF home_id, away_id, startDate ON game
     WHEN NOT EXISTS (
       SELECT 1 FROM team
-        WHERE franchise_id = NEW.home_id 
+        WHERE franchise_id = NEW.home_id
           AND NEW.startDate >= startDate
           AND (NEW.startDate <= endDate OR endDate IS NULL)
     )
