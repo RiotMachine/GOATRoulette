@@ -26,7 +26,8 @@ CREATE TABLE team (
     startDate     INTEGER NOT NULL,
     endDate       INTEGER
         CHECK (endDate > startDate OR endDate IS NULL),
-    name          TEXT NOT NULL,
+    city          TEXT NOT NULL,
+    mascot        TEXT NOT NULL,
   PRIMARY KEY (franchise_id, startDate)
 ) STRICT, WITHOUT ROWID;
 
@@ -99,6 +100,3 @@ CREATE VIEW view_databaseFlow (
     ORDER BY season.id DESC, stage.stageNumber ASC;
 
 
--- how do we know the winner of a playoff round?
-
--- create view that combines game deets with team deets for printing
