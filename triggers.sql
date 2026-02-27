@@ -13,6 +13,18 @@
 -- seasonStart    <= gameTime <= seasonEnd
 
 
+
+-- Teams cannot be assigned to new franchises
+-- If you want to 'reassign a team', mark it as ended within a franchise
+-- Probably, tho, you shouldnt do this
+CREATE TRIGGER tgr_no_team_reassignment
+  BEFORE UPDATE OF franchise_id ON team
+  BEGIN
+    SELECT RAISE (ABORT,
+    'Team reassignment is forbidden. Teams are wrappers for franchises.');
+    END;
+
+
 -- Teams must exist during associated Franchise
 -- If end-date is NULL, team/franchise is extant
 CREATE TRIGGER tgr_new_team_before_franchise_start
@@ -56,7 +68,7 @@ CREATE TRIGGER tgr_mod_franchise_end
     END;
 
 CREATE TRIGGER tgr_mod_team_start
-  BEFORE UPDATE OF startDate, franchise_id ON team
+  BEFORE UPDATE OF startDate ON team
     WHEN NEW.startDate <
       (SELECT startDate FROM franchise WHERE id = NEW.franchise_id)
     BEGIN
@@ -65,7 +77,7 @@ CREATE TRIGGER tgr_mod_team_start
     END;
 
 CREATE TRIGGER tgr_mod_team_end
-  BEFORE UPDATE OF endDate, franchise_id ON team
+  BEFORE UPDATE OF endDate ON team
     WHEN EXISTS (
       SELECT 1 FROM franchise WHERE id = NEW.franchise_id
         AND endDate IS NOT NULL
@@ -95,7 +107,7 @@ CREATE TRIGGER tgr_add_team_franchise_would_have_two
     END;
 
 CREATE TRIGGER tgr_mod_team_franchise_would_have_two
-  BEFORE UPDATE OF franchise_id, startDate, endDate ON team
+  BEFORE UPDATE OF startDate, endDate ON team
     WHEN EXISTS (
       SELECT 1 FROM team
         WHERE franchise_id = NEW.franchise_id
