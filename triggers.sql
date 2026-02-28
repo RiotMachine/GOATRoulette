@@ -12,11 +12,14 @@
 -- teamStart      <= gameTime <= teamEnd
 -- seasonStart    <= gameTime <= seasonEnd
 
+-- Triggers cover INSERTs and UPDATEs where FKs dont
+-- Leaving DELETEs open.
+--  User can trust INSERTs and UPDATEs are internally consistent
+--  FK enforcement provides vital coverage of DELETEs
+--    If you f-ed up a FK relation, you messed up enough to need nuke and pave
 
 
--- Teams cannot be assigned to new franchises
--- If you want to 'reassign a team', mark it as ended within a franchise
--- Probably, tho, you shouldnt do this
+-- A team does not exist independently of its franchise
 CREATE TRIGGER tgr_no_team_reassignment
   BEFORE UPDATE OF franchise_id ON team
   BEGIN
@@ -293,3 +296,4 @@ CREATE TRIGGER tgr_mod_team_orphans_game
       SELECT RAISE(ABORT,
       'Modifying this team in this way would orphan a game');
     END;
+

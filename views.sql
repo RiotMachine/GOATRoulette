@@ -6,6 +6,8 @@ CREATE VIEW view_databaseFlow (
     game_id
 ) AS SELECT season.id, stage.stageNumber, stage.isPlayoff, game.id
     FROM season
-      INNER JOIN stage ON season.id = stage.season_id
-      INNER JOIN game  ON season.id = game.season_id AND stage.stageNumber = gam>
+      INNER JOIN stage
+        ON season.id = stage.season_id
+      INNER JOIN game
+        ON season.id = game.season_id AND stage.stageNumber = game.stageNumber
     ORDER BY season.id DESC, stage.stageNumber ASC;
