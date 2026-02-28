@@ -9,14 +9,8 @@
 -- teamStart      < teamEnd
 -- seasonStart    < seasonEnd
 -- franchiseStart <= teamStart < teamEnd <= franchiseEnd
--- teamStart      <= gameTime <= teamEnd
+-- franchiseStart <= gameTime <= franchiseEnd
 -- seasonStart    <= gameTime <= seasonEnd
-
--- Triggers cover INSERTs and UPDATEs where FKs dont
--- Leaving DELETEs open.
---  User can trust INSERTs and UPDATEs are internally consistent
---  FK enforcement provides vital coverage of DELETEs
---    If you f-ed up a FK relation, you messed up enough to need nuke and pave
 
 
 -- A team does not exist independently of its franchise
@@ -239,61 +233,58 @@ CREATE TRIGGER tgr_mod_season_endDate
     END;
 
 
--- A franchise needs to have a team when it plays a game
-CREATE TRIGGER tgr_add_game_need_team
+-- A franchise needs to exist when it plays a game
+CREATE TRIGGER tgr_add_game_need_franchise
   BEFORE INSERT ON game
     WHEN NOT EXISTS (
-      SELECT 1 FROM team
-        WHERE franchise_id = NEW.home_id
+      SELECT 1 FROM franchise
+        WHERE id = NEW.home_id
           AND NEW.startDate >= startDate
           AND (NEW.startDate <= endDate OR endDate IS NULL)
     )
     OR NOT EXISTS (
-      SELECT 1 FROM team
-        WHERE franchise_id = NEW.away_id
+      SELECT 1 FROM franchise
+        WHERE id = NEW.away_id
           AND NEW.startDate >= startDate
           AND (NEW.startDate <= endDate OR endDate IS NULL)
     )
     BEGIN
       SELECT RAISE(ROLLBACK,
-      'A franchise must have a team when the game was played');
+      'A franchise must exist when it plays a game');
     END;
 
-CREATE TRIGGER tgr_mod_game_need_team
+CREATE TRIGGER tgr_mod_game_need_franchise
   BEFORE UPDATE OF home_id, away_id, startDate ON game
     WHEN NOT EXISTS (
-      SELECT 1 FROM team
-        WHERE franchise_id = NEW.home_id
+      SELECT 1 FROM franchise
+        WHERE id = NEW.home_id
           AND NEW.startDate >= startDate
           AND (NEW.startDate <= endDate OR endDate IS NULL)
     )
     OR NOT EXISTS (
-      SELECT 1 FROM team
-        WHERE franchise_id = NEW.away_id
+      SELECT 1 FROM franchise
+        WHERE id = NEW.away_id
           AND NEW.startDate >= startDate
           AND (NEW.startDate <= endDate OR endDate IS NULL)
     )
     BEGIN
       SELECT RAISE(ABORT,
-      'A franchise must have a team when the game was played');
+      'A franchise must exist when it plays a game');
     END;
 
 
--- Cant modify a team's start/end if it would orphan a game
-CREATE TRIGGER tgr_mod_team_orphans_game
-  BEFORE UPDATE OF startDate, endDate ON team
+-- Cant modify a franchise's start/end if it would orphan a game
+CREATE TRIGGER tgr_mod_franchise_orphans_game
+  BEFORE UPDATE OF startDate, endDate ON franchise
     WHEN EXISTS (
       SELECT 1 FROM game
-        WHERE (home_id = OLD.franchise_id OR away_id = OLD.franchise_id)
-        AND startDate >= OLD.startDate
-        AND (startDate <= OLD.endDate OR OLD.endDate IS NULL)
+        WHERE (home_id = OLD.id OR away_id = OLD.id)
         AND (
           startDate < NEW.startDate
-          OR (startDate > NEW.endDate AND NEW.endDate IS NOT NULL)
+          OR (startDate > NEW.endDate and NEW.endDate IS NOT NULL)
         )
     )
     BEGIN
       SELECT RAISE(ABORT,
-      'Modifying this team in this way would orphan a game');
+      'Modifying this franchise''s start/end would orphan a game');
     END;
-

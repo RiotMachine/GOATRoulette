@@ -83,5 +83,5 @@ CREATE INDEX idx_home_id
   ON game(home_id);
 CREATE INDEX idx_away_id
   ON game(away_id);
-CREATE INDEX idx_stageNumber_and_season_id
-  ON game (stageNumber, season_id);
+CREATE INDEX idx_season_id_and_stageNumber
+  ON game(season_id, stageNumber);
