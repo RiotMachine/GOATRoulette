@@ -281,7 +281,7 @@ CREATE TRIGGER tgr_mod_franchise_orphans_game
         WHERE (home_id = OLD.id OR away_id = OLD.id)
         AND (
           startDate < NEW.startDate
-          OR (startDate > NEW.endDate and NEW.endDate IS NOT NULL)
+          OR (startDate > NEW.endDate AND NEW.endDate IS NOT NULL)
         )
     )
     BEGIN
