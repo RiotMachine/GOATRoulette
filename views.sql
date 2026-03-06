@@ -12,7 +12,8 @@ CREATE VIEW view_databaseFlow (
         ON season.id = game.season_id AND stage.stageNumber = game.stageNumber;
 
 
--- Game_id | Time | Location | Stage | Away | Away score | Home | Home score
+-- Game_id | Time | Location | Stage | 
+-- Away | Away score | Home | Home score
 CREATE VIEW view_game (
     id,
     time,
@@ -32,10 +33,18 @@ CREATE VIEW view_game (
         ON game.home_id = team.franchise_id
 
 
--- Season | Stage | Game in stage | Game details
+-- Season | Stage | Game in stage | Game details | Stage results to that point
 CREATE VIEW view_playoffs (
-
-)
+    season,
+    round,
+    awayTeam,
+    awayScore,
+    homeTeam,
+    homeScore,
+    homeTeam_wins,
+    awayTeam_wins,
+    roundWinner
+) AS SELECT 
 
 
 -- Team | Season start | Season end | Regular szn wins | Reg szn losses | Playoff performance
