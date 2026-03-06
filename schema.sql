@@ -46,17 +46,13 @@ CREATE TABLE season (
         CHECK (length >= regularSeason_length),
     startDate            INTEGER NOT NULL,
     endDate              INTEGER NOT NULL
-        CHECK (endDate > startDate),
-    playoffEliminations   INTEGER NOT NULL DEFAULT 1
-        CHECK (playoffEliminations > -1)
+        CHECK (endDate > startDate)
 ) STRICT;
 
 
 CREATE TABLE stage (
     season_id   INTEGER NOT NULL REFERENCES season,
     stageNumber INTEGER NOT NULL,
-    stageLength INTEGER NOT NULL DEFAULT 1
-        CHECK (stageLength > -1),
     isPlayoff   INTEGER NOT NULL DEFAULT FALSE
         CHECK (isPlayoff IN (TRUE, FALSE)),
   PRIMARY KEY (season_id, stageNumber)
