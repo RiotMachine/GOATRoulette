@@ -39,19 +39,20 @@ CREATE VIEW view_game (
         ON game.home_id = homeTeam.franchise_id;
 
 
--- Season | Stage | Game in stage | Game details | Stage results to that point
+-- Season | Stage | Game in stage |
+-- Game details | Stage results to that point
 CREATE VIEW view_playoffs (
     season_id,
     round,
     game,
-    awayTeam,
-    awayScore,
-    homeTeam,
-    homeScore,
-    homeTeam_wins,
-    awayTeam_wins,
-    roundWinner
-) AS 
+    team_1,
+    team_1_score,
+    team_2,
+    team_2_score,
+    team_1_wins,
+    team_2_wins
+) AS
+    WITH team ()
     SELECT 
       game.season_id, 
       game.stageNumber - season.regularSeason_length,

@@ -47,7 +47,7 @@ CREATE TABLE season (
     startDate            INTEGER NOT NULL,
     endDate              INTEGER NOT NULL
         CHECK (endDate > startDate),
-    playoffElminations   INTEGER NOT NULL DEFAULT 1
+    playoffEliminations   INTEGER NOT NULL DEFAULT 1
         CHECK (playoffEliminations > -1)
 ) STRICT;
 
