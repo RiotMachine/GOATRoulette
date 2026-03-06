@@ -52,7 +52,6 @@ CREATE VIEW view_playoffs (
     team_1_wins,
     team_2_wins
 ) AS
-    WITH team ()
     SELECT 
       game.season_id, 
       game.stageNumber - season.regularSeason_length,
@@ -65,17 +64,17 @@ CREATE VIEW view_playoffs (
          ORDER BY 
            game.date
       ),
-      CONCAT(awayTeam.city, ' ', awayTeam.mascot),
-      game.awayScore,
-      CONCAT(homeTeam.city, ' ', homeTeam.mascot),
-      game.homeScore,
+      CONCAT(team_1.city, ' ', team_1.mascot),
+      game.,
+      CONCAT(team_2.city, ' ', team_2.mascot),
+      game.,
       
     FROM game
       INNER JOIN season
         ON game.season_id = season.id
-      INNER JOIN team AS awayTeam
+      INNER JOIN team AS team_1
         ON game.away_id = awayTeam.franchise_id
-      INNER JOIN team AS homeTeam
+      INNER JOIN team AS team_2
         ON game.home_id = homeTeam.franchise_id
       INNER JOIN stage
         ON game.season_id = stage.season_id
