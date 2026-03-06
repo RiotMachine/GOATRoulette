@@ -9,5 +9,4 @@ CREATE VIEW view_databaseFlow (
       INNER JOIN stage
         ON season.id = stage.season_id
       INNER JOIN game
-        ON season.id = game.season_id AND stage.stageNumber = game.stageNumber
-    ORDER BY season.id DESC, stage.stageNumber ASC;
+        ON season.id = game.season_id AND stage.stageNumber = game.stageNumber;
