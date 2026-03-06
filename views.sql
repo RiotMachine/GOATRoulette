@@ -51,24 +51,35 @@ CREATE VIEW view_playoffs (
     homeTeam_wins,
     awayTeam_wins,
     roundWinner
-) AS
-    WITH 
+) AS 
     SELECT 
       game.season_id, 
       game.stageNumber - season.regularSeason_length,
-
+      ROW_NUMBER() OVER (
+         PARTITION BY 
+           game.season_id, 
+           game.stageNumber, 
+           MIN(game.away_id, game.home_id), 
+           MAX(game.away_id, game.home_id)
+         ORDER BY 
+           game.date
+      ),
       CONCAT(awayTeam.city, ' ', awayTeam.mascot),
       game.awayScore,
       CONCAT(homeTeam.city, ' ', homeTeam.mascot),
       game.homeScore,
-     
+      
     FROM game
       INNER JOIN season
         ON game.season_id = season.id
       INNER JOIN team AS awayTeam
-        ON game.away_id = team.franchise_id
+        ON game.away_id = awayTeam.franchise_id
       INNER JOIN team AS homeTeam
-        ON game.home_id = team.franchise_id
+        ON game.home_id = homeTeam.franchise_id
+      INNER JOIN stage
+        ON game.season_id = stage.season_id
+          AND game.stageNumber = stage.stageNumber
+    WHERE stage.isPlayoff = TRUE
 
 
 -- Team | Season start | Season end | Regular szn wins | Reg szn losses | Playoff performance
