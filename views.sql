@@ -25,7 +25,7 @@ CREATE VIEW view_game (
     homeScore
 ) AS SELECT 
       game.id, 
-      DATE(game.startDate), 
+      DATE(game.startDate, 'unixepoch'), 
       IF(atNeutralSite, 'Neutral site', homeTeam.city),
       game.stageNumber, 
       CONCAT(awayTeam.city, ' ', awayTeam.mascot), 
