@@ -98,6 +98,7 @@ CREATE VIEW view_playoffs (
           AND gameDeets.startDate >= team_1.startDate
           AND (gameDeets.startDate <= team_1.endDate OR team_1.endDate IS NULL) 
       INNER JOIN team AS team_2
+        ON gameDeets.team_2_id = team_2.franchise_id
           AND gameDeets.startDate >= team_2.startDate
           AND (gameDeets.startDate <= team_2.endDate OR team_2.endDate IS NULL) 
     WINDOW window_series AS (
