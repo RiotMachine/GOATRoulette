@@ -108,7 +108,7 @@ CREATE VIEW view_playoffs (
         team_2_id
       ORDER BY
         gameDeets.startDate
-      )
+      );
 
 
 
