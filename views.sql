@@ -34,9 +34,13 @@ CREATE VIEW view_game (
       game.homeScore
     FROM game
       INNER JOIN team AS awayTeam
-        ON game.away_id = awayTeam.franchise_id 
+        ON game.away_id = awayTeam.franchise_id
+          AND game.startDate > awayTeam.startDate
+          AND (game.startDate < awayTeam.endDate OR endDate IS NULL) 
       INNER JOIN team AS homeTeam
-        ON game.home_id = homeTeam.franchise_id;
+        ON game.home_id = homeTeam.franchise_id
+          AND game.startDate > homeTeam.startDate
+          AND (game.startDate < homeTeam.endDate OR endDate IS NULL);
 
 
 -- Season | Stage | Game in stage |
