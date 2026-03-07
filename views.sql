@@ -65,17 +65,22 @@ CREATE VIEW view_playoffs (
            game.date
       ),
       CONCAT(team_1.city, ' ', team_1.mascot),
-      game.,
+      IF(team_1.franchise_id = game.home_id, game.homeScore, game.awayScore)
       CONCAT(team_2.city, ' ', team_2.mascot),
-      game.,
-      
+      IF(team_2.franchise_id = game.home_id, game.homeScore, game.awayScore)
+      SUM(IF(team_1_score > team_2_score, 1, 0)) OVER (
+
+      ),
+      SUM(IF(team_2_score > team_1_score, 1, 0)) OVER (
+
+      )
     FROM game
       INNER JOIN season
         ON game.season_id = season.id
       INNER JOIN team AS team_1
-        ON game.away_id = awayTeam.franchise_id
+        ON MIN(game.away_id, game.home_id) = team_1.franchise_id
       INNER JOIN team AS team_2
-        ON game.home_id = homeTeam.franchise_id
+        ON MAX(game.away_id, game.home_id) = team_2.franchise_id
       INNER JOIN stage
         ON game.season_id = stage.season_id
           AND game.stageNumber = stage.stageNumber
