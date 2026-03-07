@@ -42,66 +42,67 @@ CREATE VIEW view_game (
 -- Season | Stage | Game in stage |
 -- Game details | Stage results to that point
 CREATE VIEW view_playoffs (
-    season_id, 
-    round, 
-    game,
+    season_id, round, game,
     team_1, 
     team_1_score,
     team_2, 
     team_2_score,
-    team_1_wins, team_2_wins
+    team_1_wins, 
+    team_2_wins
 ) AS
-    WITH scores (
-      game_id,
-      team_1_score,
-      team_2_score
-    ) AS (
-      SELECT
-        game.id,
-        IF (MIN(game.away_id, game.home_id) = game.home_id, game.homeScore, game.awayScore),
-        IF (MAX(game.away_id, game.home_id) = game.home_id, game.homeScore, game.awayScore)
-      FROM game
+    WITH gameDeets (
+      season_id, round,
+      team_1_id, team_1_score,
+      team_2_id, team_2_score,
+      startDate
     )
-    SELECT 
-      game.season_id, 
-      game.stageNumber + 1 - MIN(game.stageNumber) OVER (
-        PARTITION BY game.season_id
-      ),
+    AS (
+      SELECT 
+        game.season_id,
+        game.stageNumber + 1 - MIN(game.stageNumber) OVER (
+          PARTITION BY game.season_id
+        ),
+        MIN(game.away_id, game.home_id),
+        IF (MIN(game.away_id, game.home_id) = game.home_id, game.homeScore, game.awayScore),
+        MAX(game.away_id, game.home_id),
+        IF (MAX(game.away_id, game.home_id) = game.home_id, game.homeScore, game.awayScore),
+        game.startDate
+      FROM game
+        INNER JOIN stage
+          ON game.season_id = stage.season_id
+            AND game.stageNumber = stage.stageNumber
+            AND stage.isPlayoff = TRUE
+    )            
+    SELECT
+      season_id, round,
       ROW_NUMBER() OVER (
         window_series
       ),
-      CONCAT(team_1.city, ' ', team_1.mascot),
-      scores.team_1_score,
-      CONCAT(team_2.city, ' ', team_2.mascot),
-      scores.team_2_score,
-      SUM(IF(scores.team_1_score > scores.team_2_score, 1, 0)) OVER (
+      CONCAT(team_1.city, ' ', team_1.mascot), team_1_score,
+      CONCAT(team_2.city, ' ', team_2.mascot), team_2_score,
+      SUM(IF(team_1_score > team_2_score, 1, 0)) OVER (
         window_series
         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
       ),
-      SUM(IF(scores.team_2_score > scores.team_1_score, 1, 0)) OVER (
+      SUM(IF(team_2_score > team_1_score, 1, 0)) OVER (
         window_series
         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
       )
-    FROM game
-      INNER JOIN scores
-        ON game.id = scores.game_id
+    FROM gameDeets
       INNER JOIN team AS team_1
-        ON MIN(game.away_id, game.home_id) = team_1.franchise_id
+        ON gameDeets.team_1_id = team_1.franchise_id
       INNER JOIN team AS team_2
-        ON MAX(game.away_id, game.home_id) = team_2.franchise_id
-      INNER JOIN stage
-        ON game.season_id = stage.season_id
-          AND game.stageNumber = stage.stageNumber
-    WHERE stage.isPlayoff = TRUE
+        ON gameDeets.team_2_id = team_2.franchise_id
     WINDOW window_series AS (
       PARTITION BY
-        game.season_id, 
-        game.stageNumber,
-        team_1.franchise_id,
-        team_2.franchise_id
+        season_id, 
+        round,
+        team_1_id,
+        team_2_id
       ORDER BY
-        game.date
-    );
+        startDate
+      )
+
 
 
 -- Team | Season start | Season end | Regular szn wins | Reg szn losses | Playoff performance
