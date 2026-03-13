@@ -19,10 +19,10 @@ CREATE VIEW view_game (
     season_id,
     time,
     location,
-    away_id
+    away_id,
     awayTeam,
     awayScore,
-    home_id
+    home_id,
     homeTeam,
     homeScore
 ) AS SELECT 
@@ -73,11 +73,11 @@ CREATE VIEW view_playoffs (
        v_game.location,
 
 
-     FROM stage
-     WHERE isPlayoff = TRUE
-       INNER JOIN view_game AS v_game
-         ON v_game.stage = stage.stageNumber
-           AND v_game.season_id = stage.season_id            
+     FROM view_game AS v_game
+       INNER JOIN stage
+         ON stage.stageNumber = v_game.stage
+           AND stage.season_id = v_game.season_id
+           AND stage.isPlayoff = TRUE            
 
 
       SUM(IF(team_1_score > team_2_score, 1, 0)) OVER (
@@ -90,12 +90,12 @@ CREATE VIEW view_playoffs (
       )
      WINDOW window_series AS (
        PARTITION BY
-         season_id, 
-         round,
+         v_game.season_id, 
+         v_game.stage,
          team_1_id,
          team_2_id
        ORDER BY
-         gameDeets.startDate
+         v_game.time
      );
 
 
