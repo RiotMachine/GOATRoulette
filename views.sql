@@ -48,52 +48,57 @@ CREATE VIEW view_game (
            AND (game.startDate <= homeTeam.endDate OR homeTeam.endDate IS NULL);
 
 
-CREATE VIEW view_playoffs (
-    game_id,
-    round,
-    round_game,
-    season_id,
-    time,
-    location,
-    team1,
-    team1_score
-    team2,
-    team2_score
-) AS 
-     SELECT 
-       v_game.id,
-       v_game.stageNumber + 1 - MIN(v_game.stageNumber) OVER (
+CREATE VIEW view_game_generic
+  AS SELECT
+       id,
+       stage,
+       season_id,
+       time,
+       location,
+       MIN(away_id, home_id) AS team1_id,
+       IF (MIN(away_id, home_id) = away_id, awayTeam, homeTeam) AS team1_name,
+       IF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team1_score,
+       MAX(away_id, home_id) AS team2_id,
+       IF (MAX(away_id, home_id) = away_id, awayTeam, homeTeam) AS team2_name,
+       IF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
+     FROM view_game
+
+
+CREATE VIEW view_playoffs 
+  AS SELECT 
+       v_game.id AS game_id,
+       v_game.stage + 1 - MIN(v_game.stage) OVER (
          PARTITION BY v_game.season_id
-       ),
+       ) AS round,
        ROW_NUMBER() OVER (
          window_series
-       ),
+       ) AS round_game,
        v_game.season_id,
-       v_game.time,
-       v_game.location,
-
-
-     FROM view_game AS v_game
+       time,
+       location,
+       team1_name,
+       team1_score,
+       team2_name,
+       team2_score,
+       SUM(IF(team1_score > team2_score, 1, 0)) OVER (
+         window_series
+         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS team1_wins,
+       SUM(IF(team2_score > team1_score, 1, 0)) OVER (
+         window_series
+         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS team2_wins
+     FROM view_game_generic AS v_game
        INNER JOIN stage
          ON stage.stageNumber = v_game.stage
            AND stage.season_id = v_game.season_id
            AND stage.isPlayoff = TRUE            
-
-
-      SUM(IF(team_1_score > team_2_score, 1, 0)) OVER (
-        window_series
-        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-      ),
-      SUM(IF(team_2_score > team_1_score, 1, 0)) OVER (
-        window_series
-        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-      )
      WINDOW window_series AS (
        PARTITION BY
          v_game.season_id, 
          v_game.stage,
-         team_1_id,
-         team_2_id
+         team1_id,
+         team2_id
        ORDER BY
          v_game.time
      );
