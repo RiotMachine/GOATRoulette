@@ -64,18 +64,30 @@ CREATE VIEW view_game_generic
      FROM view_game
 
 
-CREATE VIEW view_playoffs 
-  AS SELECT 
-       v_game.id AS game_id,
+CREATE VIEW view_playoff_games (
+    game_id,
+    round,
+    round_game,
+    season_id,
+    time,
+    location,
+    team1_name,
+    team1_score,
+    team2_name,
+    team2_score,
+    team1_wins,
+    team2_wins
+) AS SELECT 
+       v_game.id,
        v_game.stage + 1 - MIN(v_game.stage) OVER (
          PARTITION BY v_game.season_id
-       ) AS round,
+       ),
        ROW_NUMBER() OVER (
          window_series
-       ) AS round_game,
+       ),
        v_game.season_id,
-       time,
-       location,
+       v.game.time,
+       v.game.location,
        team1_name,
        team1_score,
        team2_name,
@@ -83,11 +95,11 @@ CREATE VIEW view_playoffs
        SUM(IF(team1_score > team2_score, 1, 0)) OVER (
          window_series
          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS team1_wins,
-       SUM(IF(team2_score > team1_score, 1, 0)) OVER (
+       ),
+       SUM(IF(team1_score < team2_score, 1, 0)) OVER (
          window_series
          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS team2_wins
+       )
      FROM view_game_generic AS v_game
        INNER JOIN stage
          ON stage.stageNumber = v_game.stage
