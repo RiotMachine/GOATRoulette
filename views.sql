@@ -64,7 +64,7 @@ CREATE VIEW view_game_generic
      FROM view_game
 
 
-CREATE VIEW view_playoff_games (
+CREATE VIEW view_playoff_tournamentGames (
     game_id,
     round,
     round_game,
