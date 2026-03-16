@@ -86,8 +86,8 @@ CREATE VIEW view_playoff_tournamentGames (
          window_series
        ),
        v_game.season_id,
-       v.game.time,
-       v.game.location,
+       v_game.time,
+       v_game.location,
        team1_name,
        team1_score,
        team2_name,
