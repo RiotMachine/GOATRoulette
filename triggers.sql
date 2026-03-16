@@ -149,6 +149,15 @@ CREATE TRIGGER tgr_modify_stageNumber_not_allowed
       'Modifying a stage''s number is not allowed.');
     END;
 
+CREATE TRIGGER tgr_del_notMax_stageNumber_not_allowed
+  BEFORE DELETE ON stage
+    WHEN OLD.stageNumber != 
+      (SELECT MAX(stageNumber) FROM stage WHERE season_id = OLD.season_id)
+    BEGIN
+      SELECT RAISE (ABORT,
+      'You cannot create a gap in stage numbers.');
+    END;
+
 CREATE TRIGGER tgr_mod_season_len
   BEFORE UPDATE OF length ON season
     WHEN NEW.length <
