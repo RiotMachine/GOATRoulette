@@ -60,7 +60,7 @@ CREATE VIEW view_game_generic
        IF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team1_score,
        MAX(away_id, home_id) AS team2_id,
        IF (MAX(away_id, home_id) = away_id, awayTeam, homeTeam) AS team2_name,
-       IF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
+       IF (MAX(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
      FROM view_game
 
 
