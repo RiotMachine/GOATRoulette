@@ -149,7 +149,7 @@ CREATE TRIGGER tgr_modify_stageNumber_not_allowed
       'Modifying a stage''s number is not allowed.');
     END;
 
-CREATE TRIGGER tgr_del_notMax_stageNumber_not_allowed
+CREATE TRIGGER tgr_del_only_max_stageNumber
   BEFORE DELETE ON stage
     WHEN OLD.stageNumber != 
       (SELECT MAX(stageNumber) FROM stage WHERE season_id = OLD.season_id)
