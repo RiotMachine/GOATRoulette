@@ -118,9 +118,75 @@ CREATE VIEW view_playoff_bracketGames (
 
 
 -- Team | Season start | Season end | Regular szn wins | Reg szn losses | Playoff performance
-CREATE VIEW view_teamSeason (
+CREATE VIEW view_teamPerformance (
+  team_id,
+  team_name,
+  season_id,
+  seasonStart,
+  seasonEnd,
+  wins,
+  losses,
+  playoffPerformance
+) AS 
+     WITH
+       teamDetails AS (
+         SELECT
+           franchise_id, 
+           CONCAT(team.city, ' ', team.mascot)
+         FROM team
+           WHERE team.startDate <= season.startDate
+             AND (team.endDate >= season.startDate OR team.endDate IS NULL)
+         LIMIT 1
+       )
+       seasonDetails AS (
+         SELECT
+           id,
+           DATE(startDate, 'unixepoch'),
+           DATE(endDate, 'unixepoch')
+         FROM season
+       )
+       regularSeason AS (
+         SELECT * FROM stage
+           WHERE isPlayoff = FALSE
+           INNER JOIN game
+             ON game.stageNumber = stage.stageNumber
+               AND game.season_id = stage.season_id
+       ),
+       awayRecord (
+           wins,
+           ties, 
+           losses
+       ) AS (
+         SELECT
+           SUM(IF(awayScore > homeScore, 1, 0)) OVER (
+             season_id 
+             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+           )
+         FROM game
+           WHERE game.away_id = team.franchise_id
+       )
+       homeRecord AS (
+         SELECT id FROM game
+           WHERE game.home_id = team.franchise_id
+       )
+       playoffs AS (
+         SELECT
+           CASE
+             WHEN 
+             WHEN
+             WHEN
+             ELSE
+           END 
+       )
+       
+     FROM season
+       INNER JOIN game
+         ON game.season_id = season.id
+       INNER JOIN franchise
+         ON franchise.id = game.home_id OR franchise.id = game.away_id
+       INNER JOIN team
+         ON team.franchise_id = franchise.id
 
-)
 
 
 CREATE VIEW view_emptyTeamGames (
