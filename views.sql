@@ -64,7 +64,7 @@ CREATE VIEW view_game_generic
      FROM view_game
 
 
-CREATE VIEW view_playoff_tournamentGames (
+CREATE VIEW view_playoff_bracketGames (
     game_id,
     round,
     round_game,
@@ -79,9 +79,10 @@ CREATE VIEW view_playoff_tournamentGames (
     team2_wins
 ) AS SELECT 
        v_game.id,
-       v_game.stage + 1 - MIN(v_game.stage) OVER (
+       DENSE_RANK() OVER (
          PARTITION BY v_game.season_id
-       ),
+         ORDER BY v_game.stage
+       )
        ROW_NUMBER() OVER (
          window_series
        ),
