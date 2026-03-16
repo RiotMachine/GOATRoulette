@@ -82,7 +82,7 @@ CREATE VIEW view_playoff_bracketGames (
        DENSE_RANK() OVER (
          PARTITION BY v_game.season_id
          ORDER BY v_game.stage
-       )
+       ),
        ROW_NUMBER() OVER (
          window_series
        ),
