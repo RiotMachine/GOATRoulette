@@ -61,7 +61,7 @@ CREATE VIEW view_game_generic
        MAX(away_id, home_id) AS team2_id,
        IF (MAX(away_id, home_id) = away_id, awayTeam, homeTeam) AS team2_name,
        IF (MAX(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
-     FROM view_game
+     FROM view_game;
 
 
 CREATE VIEW view_playoff_bracketGames (
