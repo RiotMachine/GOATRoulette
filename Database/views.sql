@@ -169,14 +169,10 @@ CREATE VIEW view_teamPerformance (
          SELECT id FROM game
            WHERE game.home_id = team.franchise_id
        )
-       playoffs AS (
-         SELECT
-           CASE
-             WHEN 
-             WHEN
-             WHEN
-             ELSE
-           END 
+       playoffs (
+         playoffRoundAdvance,
+         totalPossiblePlayoffRounds
+       ) AS (
        )
        
      FROM season
