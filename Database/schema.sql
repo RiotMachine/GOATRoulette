@@ -99,7 +99,6 @@ CREATE TABLE performance_summary (
   PRIMARY KEY(franchise_id, season_id)
 ) STRICT, WITHOUT ROWID;
 
-
 WITH 
   regularSeason AS (
     SELECT id AS game_id
