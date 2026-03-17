@@ -118,10 +118,10 @@ CREATE VIEW view_playoff_bracketGames (
 
 
 -- Team | Season start | Season end | Regular szn wins | Reg szn losses | Playoff performance
-CREATE VIEW view_teamPerformance (
-  team_id,
-  team_name,
+CREATE VIEW view_franchisePerformance (
+  franchise_id,
   season_id,
+  team_name,
   seasonStart,
   seasonEnd,
   wins,
@@ -169,10 +169,26 @@ CREATE VIEW view_teamPerformance (
          SELECT id FROM game
            WHERE game.home_id = team.franchise_id
        )
-       playoffs (
-         playoffRoundAdvance,
+       playoffs AS (
+        SELECT 
+          DENSE_RANK() OVER (
+            PARTITION BY season_id
+            ORDER BY stageNumber
+          )
+        FROM stage
+          WHERE isPlayoff = TRUE
+          INNER JOIN game
+          ON game.stageNumber = stage.stageNumber
+            AND game.season_id = stage.season_id
+       )
+       playoffRecord (
+         playoffRoundsattended,
+         playoffRoundsWon,
          totalPossiblePlayoffRounds
        ) AS (
+         SELECT 
+
+         FROM stage
        )
        
      FROM season

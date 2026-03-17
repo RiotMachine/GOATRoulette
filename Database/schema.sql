@@ -85,3 +85,21 @@ CREATE INDEX idx_away_id
   ON game(away_id);
 CREATE INDEX idx_season_id_and_stageNumber
   ON game(season_id, stageNumber);
+
+
+CREATE TABLE performance_summary (
+    franchise_id  INTEGER NOT NULL REFERENCES franchise,
+    season_id     INTEGER NOT NULL REFERENCES season
+    wins          INTEGER NOT NULL DEFAULT 0
+        CHECK (wins >= 0),
+    losses        INTEGER NOT NULL DEFAULT 0
+        CHECK (losses >= 0),
+    ties          INTEGER NOT NULL DEFAULT 0
+        CHECK (ties >= 0),
+  PRIMARY KEY(franchise_id, season_id)
+) STRICT, WITHOUT ROWID
+
+INSERT INTO performance_summary 
+  (franchise_id, season_id, team_name,
+   wins, losses, ties) 
+VALUES
