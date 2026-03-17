@@ -126,6 +126,7 @@ CREATE VIEW view_franchisePerformance (
   seasonEnd,
   wins,
   losses,
+  ties,
   playoffPerformance
 ) AS 
      WITH

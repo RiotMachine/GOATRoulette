@@ -89,7 +89,7 @@ CREATE INDEX idx_season_id_and_stageNumber
 
 CREATE TABLE performance_summary (
     franchise_id  INTEGER NOT NULL REFERENCES franchise,
-    season_id     INTEGER NOT NULL REFERENCES season
+    season_id     INTEGER NOT NULL REFERENCES season,
     wins          INTEGER NOT NULL DEFAULT 0
         CHECK (wins >= 0),
     losses        INTEGER NOT NULL DEFAULT 0
@@ -97,9 +97,52 @@ CREATE TABLE performance_summary (
     ties          INTEGER NOT NULL DEFAULT 0
         CHECK (ties >= 0),
   PRIMARY KEY(franchise_id, season_id)
-) STRICT, WITHOUT ROWID
+) STRICT, WITHOUT ROWID;
 
-INSERT INTO performance_summary 
-  (franchise_id, season_id, team_name,
-   wins, losses, ties) 
-VALUES
+
+WITH 
+  regularSeason AS (
+    SELECT id AS game_id
+    FROM game
+      INNER JOIN stage
+        ON stage.stageNumber = game.stageNumber
+          AND stage.season_id = game.season_id
+          AND stage.isPlayoff = FALSE
+  ),
+  homeRecord AS (
+    SELECT
+      home_id,
+      season_id,
+      SUM(IF(homeScore > awayScore, 1, 0)) AS wins,
+      SUM(IF(homeScore < awayScore, 1, 0)) AS losses,
+      SUM(IF(homeScore = awayScore, 1, 0)) AS ties
+    FROM game 
+      INNER JOIN regularSeason
+        ON game.id = regularSeason.game_id
+    GROUP BY home_id, season_id                
+  ),
+  awayRecord AS (
+    SELECT
+      away_id,
+      season_id,
+      SUM(IF(awayScore > homeScore, 1, 0)) AS wins,
+      SUM(IF(awayScore < homeScore, 1, 0)) AS losses,
+      SUM(IF(awayScore = homeScore, 1, 0)) AS ties
+    FROM game 
+      INNER JOIN regularSeason
+        ON game.id = regularSeason.game_id
+    GROUP BY away_id, season_id                 
+  )
+INSERT INTO performance_summary
+    (franchise_id, season_id,
+     wins, losses, ties) 
+  SELECT
+    homeRecord.home_id,
+    homeRecord.season_id,
+    (homeRecord.wins   + awayRecord.wins)   AS wins,
+    (homeRecord.losses + awayRecord.losses) AS losses,
+    (homeRecord.ties   + awayRecord.ties)   AS ties
+  FROM homeRecord
+    INNER JOIN awayRecord
+      ON homeRecord.home_id = awayRecord.away_id
+        AND homeRecord.season_id = awayRecord.season_id;
