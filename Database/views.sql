@@ -32,17 +32,17 @@ CREATE VIEW view_game (
        DATE(game.startDate, 'unixepoch'), 
        IIF(atNeutralSite, 'Neutral site', homeTeam.city),
        awayTeam.franchise_id,
-       CONCAT(awayTeam.city, ' ', awayTeam.mascot), 
+       awayTeam.city || ' ' || awayTeam.mascot, 
        game.awayScore,
        homeTeam.franchise_id,
-       CONCAT(homeTeam.city, ' ', homeTeam.mascot), 
+       homeTeam.city || ' ' || homeTeam.mascot, 
        game.homeScore
      FROM game
-       INNER JOIN team AS awayTeam
+       LEFT JOIN team AS awayTeam
          ON game.away_id = awayTeam.franchise_id
            AND game.startDate >= awayTeam.startDate
            AND (game.startDate <= awayTeam.endDate OR awayTeam.endDate IS NULL) 
-       INNER JOIN team AS homeTeam
+       LEFT JOIN team AS homeTeam
          ON game.home_id = homeTeam.franchise_id
            AND game.startDate >= homeTeam.startDate
            AND (game.startDate <= homeTeam.endDate OR homeTeam.endDate IS NULL);
@@ -131,14 +131,7 @@ CREATE VIEW view_franchisePerformance
   AS SELECT
        trs.franchise_id,
        trs.season_id,
-       IFNULL( 
-         (SELECT CONCAT(team.city, ' ', team.mascot)
-          FROM team
-          WHERE team.franchise_id = trs.franchise_id
-            AND team.startDate <= season.startDate
-            AND (team.endDate >= season.endDate OR team.endDate IS NULL))
-         , 'No one team spans season'
-       ) AS team_name,
+       team.city || ' ' || team.mascot AS team_name,
        DATE(season.startDate, 'unixepoch') AS seasonStart,
        DATE(season.endDate  , 'unixepoch') AS seasonEnd,
        trs.wins,
@@ -162,6 +155,10 @@ CREATE VIEW view_franchisePerformance
      FROM team_regularSeason_summary AS trs
        INNER JOIN season
          ON season.id = trs.season_id;
+       LEFT JOIN team 
+         ON team.franchise_id = trs.franchise_id
+            AND team.startDate <= season.startDate
+            AND (team.endDate >= season.endDate OR team.endDate IS NULL)
 
 
 CREATE VIEW view_emptyTeamGames (
