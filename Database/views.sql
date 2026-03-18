@@ -131,7 +131,14 @@ CREATE VIEW view_franchisePerformance
   AS SELECT
        trs.franchise_id,
        trs.season_id,
-       team.city || ' ' || team.mascot AS team_name,
+       IFNULL( 
+         (SELECT CONCAT(team.city, ' ', team.mascot)
+          FROM team
+          WHERE team.franchise_id = trs.franchise_id
+            AND team.startDate <= season.startDate
+            AND (team.endDate >= season.endDate OR team.endDate IS NULL))
+         , 'No one team spans season'
+       ) AS team_name,
        DATE(season.startDate, 'unixepoch') AS seasonStart,
        DATE(season.endDate  , 'unixepoch') AS seasonEnd,
        trs.wins,
@@ -154,11 +161,7 @@ CREATE VIEW view_franchisePerformance
        ) AS championBool
      FROM team_regularSeason_summary AS trs
        INNER JOIN season
-         ON season.id = trs.season_id
-       LEFT JOIN team 
-         ON team.franchise_id = trs.franchise_id
-            AND team.startDate <= season.startDate
-            AND (team.endDate >= season.endDate OR team.endDate IS NULL);
+         ON season.id = trs.season_id;
 
 
 CREATE VIEW view_emptyTeamGames (
