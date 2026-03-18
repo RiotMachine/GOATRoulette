@@ -154,11 +154,11 @@ CREATE VIEW view_franchisePerformance
        ) AS championBool
      FROM team_regularSeason_summary AS trs
        INNER JOIN season
-         ON season.id = trs.season_id;
+         ON season.id = trs.season_id
        LEFT JOIN team 
          ON team.franchise_id = trs.franchise_id
             AND team.startDate <= season.startDate
-            AND (team.endDate >= season.endDate OR team.endDate IS NULL)
+            AND (team.endDate >= season.endDate OR team.endDate IS NULL);
 
 
 CREATE VIEW view_emptyTeamGames (
