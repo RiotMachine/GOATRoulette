@@ -129,7 +129,7 @@ CREATE VIEW view_playoff_bracketGames (
 -- Reg szn losses | Playoff performance
 CREATE VIEW view_franchisePerformance
   AS SELECT
-       trs.franchise_id
+       trs.franchise_id,
        trs.season_id,
        IFNULL( 
          (SELECT CONCAT(team.city, ' ', team.mascot)
@@ -156,7 +156,7 @@ CREATE VIEW view_franchisePerformance
          (SELECT TRUE
           FROM champion
           WHERE champion.franchise_id = trs.franchise_id
-            AND champion.season_id = trs.season_id),
+            AND champion.season_id = trs.season_id)
          , FALSE
        ) AS championBool
      FROM team_regularSeason_summary AS trs
