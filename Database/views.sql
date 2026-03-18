@@ -161,7 +161,7 @@ CREATE VIEW view_franchisePerformance
        ) AS championBool
      FROM team_regularSeason_summary AS trs
        INNER JOIN season
-         ON season.id = trs.season_id
+         ON season.id = trs.season_id;
 
 
 CREATE VIEW view_emptyTeamGames (
