@@ -89,7 +89,7 @@ CREATE INDEX idx_season_id_and_stageNumber
 
 CREATE TABLE champion (
     season_id INTEGER NOT NULL REFERENCES season,
-    champion_id INTEGER NOT NULL REFERENCES franchise
+    champion_id INTEGER NOT NULL REFERENCES franchise,
   PRIMARY KEY (season_id, champion_id)
 ) STRICT, WITHOUT ROWID;
 

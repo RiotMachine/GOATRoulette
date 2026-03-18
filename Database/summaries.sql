@@ -47,7 +47,7 @@ CREATE TABLE team_regularSeason_summary (
     losses            INTEGER NOT NULL DEFAULT 0
         CHECK (losses >= 0),
     ties              INTEGER NOT NULL DEFAULT 0
-        CHECK (ties >= 0)
+        CHECK (ties >= 0),
   PRIMARY KEY(franchise_id, season_id)
 ) STRICT, WITHOUT ROWID;
 
@@ -92,6 +92,6 @@ INSERT INTO team_regularSeason_summary
     rsr.season_id,
     SUM(rsr.win),
     SUM(rsr.loss),
-    SUM(rsr.tie),
+    SUM(rsr.tie)
   FROM regularSeasonResult AS rsr
   GROUP BY franchise_id, season_id;
