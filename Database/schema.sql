@@ -102,7 +102,7 @@ CREATE TABLE performance_summary (
 WITH 
   regularSeasonGame AS (
     SELECT 
-      season_id,
+      game.season_id,
       home_id,
       away_id,
       homeScore,
