@@ -102,7 +102,7 @@ CREATE TABLE performance_summary (
 WITH 
   regularSeasonGame AS (
     SELECT 
-      season_id
+      season_id,
       home_id,
       away_id,
       homeScore,
@@ -115,17 +115,17 @@ WITH
   ),
   regularSeasonResult AS (
     SELECT
-      home_id AS franchise_id
+      home_id AS franchise_id,
       season_id,
       IF(homeScore > awayScore, 1, 0) AS win,
       IF(homeScore < awayScore, 1, 0) AS loss,
       IF(homeScore = awayScore, 1, 0) AS tie
     FROM regularSeasonGame
 
-    UNION
+    UNION ALL
 
     SELECT
-      away_id AS franchise_id
+      away_id AS franchise_id,
       season_id,
       IF(awayScore > homeScore, 1, 0) AS win,
       IF(awayScore < homeScore, 1, 0) AS loss,
@@ -142,4 +142,4 @@ INSERT INTO performance_summary
     SUM(rsr.loss),
     SUM(rsr.tie)
   FROM regularSeasonResult AS rsr
-  GROUP BY franchise_id, season_id
+  GROUP BY franchise_id, season_id;
