@@ -131,14 +131,14 @@ CREATE VIEW view_franchisePerformance (
 ) AS SELECT
        ps.franchise_id,
        ps.season_id,
-       ( 
-        SELECT CONCAT(team.city, ' ', team.mascot)
-        FROM team
+       IFNULL( 
+         (SELECT CONCAT(team.city, ' ', team.mascot)
+          FROM team
           WHERE team.franchise_id = ps.franchise_id
             AND team.startDate <= season.startDate
-            AND (team.endDate >= season.endDate OR team.endDate IS NULL)
-        LIMIT 1
-       ),
+            AND (team.endDate >= season.endDate OR team.endDate IS NULL))
+          , 'No one team spans season'
+       ), 
        DATE(season.startDate, 'unixepoch'),
        DATE(season.endDate, 'unixepoch'),
        ps.wins,
