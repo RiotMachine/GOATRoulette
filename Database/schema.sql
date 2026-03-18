@@ -100,48 +100,46 @@ CREATE TABLE performance_summary (
 ) STRICT, WITHOUT ROWID;
 
 WITH 
-  regularSeason AS (
-    SELECT id AS game_id
+  regularSeasonGame AS (
+    SELECT 
+      season_id
+      home_id,
+      away_id,
+      homeScore,
+      awayScore
     FROM game
       INNER JOIN stage
         ON stage.stageNumber = game.stageNumber
           AND stage.season_id = game.season_id
           AND stage.isPlayoff = FALSE
   ),
-  homeRecord AS (
+  regularSeasonResult AS (
     SELECT
-      home_id,
+      home_id AS franchise_id
       season_id,
-      SUM(IF(homeScore > awayScore, 1, 0)) AS wins,
-      SUM(IF(homeScore < awayScore, 1, 0)) AS losses,
-      SUM(IF(homeScore = awayScore, 1, 0)) AS ties
-    FROM game 
-      INNER JOIN regularSeason
-        ON game.id = regularSeason.game_id
-    GROUP BY home_id, season_id                
-  ),
-  awayRecord AS (
+      IF(homeScore > awayScore, 1, 0) AS win,
+      IF(homeScore < awayScore, 1, 0) AS loss,
+      IF(homeScore = awayScore, 1, 0) AS tie
+    FROM regularSeasonGame
+
+    UNION
+
     SELECT
-      away_id,
+      away_id AS franchise_id
       season_id,
-      SUM(IF(awayScore > homeScore, 1, 0)) AS wins,
-      SUM(IF(awayScore < homeScore, 1, 0)) AS losses,
-      SUM(IF(awayScore = homeScore, 1, 0)) AS ties
-    FROM game 
-      INNER JOIN regularSeason
-        ON game.id = regularSeason.game_id
-    GROUP BY away_id, season_id                 
+      IF(awayScore > homeScore, 1, 0) AS win,
+      IF(awayScore < homeScore, 1, 0) AS loss,
+      IF(awayScore = homeScore, 1, 0) AS tie
+    FROM regularSeasonGame         
   )
 INSERT INTO performance_summary
     (franchise_id, season_id,
      wins, losses, ties) 
   SELECT
-    homeRecord.home_id,
-    homeRecord.season_id,
-    (homeRecord.wins   + awayRecord.wins)   AS wins,
-    (homeRecord.losses + awayRecord.losses) AS losses,
-    (homeRecord.ties   + awayRecord.ties)   AS ties
-  FROM homeRecord
-    INNER JOIN awayRecord
-      ON homeRecord.home_id = awayRecord.away_id
-        AND homeRecord.season_id = awayRecord.season_id;
+    rsr.franchise_id,
+    rsr.season_id,
+    SUM(rsr.win),
+    SUM(rsr.loss),
+    SUM(rsr.tie)
+  FROM regularSeasonResult AS rsr
+  GROUP BY franchise_id, season_id
