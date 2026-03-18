@@ -85,3 +85,15 @@ CREATE INDEX idx_away_id
   ON game(away_id);
 CREATE INDEX idx_season_id_and_stageNumber
   ON game(season_id, stageNumber);
+
+
+CREATE TABLE champion (
+    season_id INTEGER NOT NULL REFERENCES season,
+    champion_id INTEGER NOT NULL REFERENCES franchise
+  PRIMARY KEY (season_id, champion_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE INDEX idx_champion_season_id
+  ON champion(season_id);
+CREATE INDEX idx_champion_season_id
+  ON champion(champion_id);

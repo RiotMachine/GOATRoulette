@@ -56,11 +56,19 @@ CREATE VIEW view_game_generic
        time,
        location,
        MIN(away_id, home_id) AS team1_id,
-       IIF (MIN(away_id, home_id) = away_id, awayTeam, homeTeam) AS team1_name,
-       IIF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team1_score,
+       IIF(
+         MIN(away_id, home_id) = away_id, awayTeam, homeTeam
+       ) AS team1_name,
+       IIF(
+         MIN(away_id, home_id) = away_id, awayScore, homeScore
+       ) AS team1_score,
        MAX(away_id, home_id) AS team2_id,
-       IIF (MAX(away_id, home_id) = away_id, awayTeam, homeTeam) AS team2_name,
-       IIF (MAX(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
+       IIF(
+         MAX(away_id, home_id) = away_id, awayTeam, homeTeam
+       ) AS team2_name,
+       IIF(
+         MAX(away_id, home_id) = away_id, awayScore, homeScore
+       ) AS team2_score
      FROM view_game;
 
 
@@ -117,60 +125,44 @@ CREATE VIEW view_playoff_bracketGames (
      );
 
 
--- Team | Season start | Season end | Regular szn wins | Reg szn losses | Playoff performance
-CREATE VIEW view_franchisePerformance (
-  franchise_id,
-  season_id,
-  team_name,
-  seasonStart,
-  seasonEnd,
-  wins,
-  losses,
-  ties,
-  finalPlayoffRound,
-  totalPlayoffRounds,
-  championBool
-) AS 
-     WITH
-       playoffDetails AS (
-         SELECT
-           season_id,
-           MAX(round) AS totalRounds
-         FROM playoff_summary
-         GROUP BY season_id
-       )
-       champion AS (
-         SELECT
-       )
-     SELECT
-       ps.franchise_id,
-       ps.season_id,
+-- Team | Season start | Season end | Regular szn wins |
+-- Reg szn losses | Playoff performance
+CREATE VIEW view_franchisePerformance
+  AS SELECT
+       trs.franchise_id
+       trs.season_id,
        IFNULL( 
          (SELECT CONCAT(team.city, ' ', team.mascot)
           FROM team
-          WHERE team.franchise_id = ps.franchise_id
+          WHERE team.franchise_id = trs.franchise_id
             AND team.startDate <= season.startDate
             AND (team.endDate >= season.endDate OR team.endDate IS NULL))
          , 'No one team spans season'
-       ),
-       DATE(season.startDate, 'unixepoch'),
-       DATE(season.endDate, 'unixepoch'),
-       ps.wins,
-       ps.losses,
-       ps.ties,
-       ps.finalPlayoffRound,
-       playoffDetails.totalRounds,
-       IIF(
-         champion.id IS NOT NULL 
-           AND champion.id = ps.franchise_id,
-         TRUE, FALSE
-       )
-     FROM performance_summary AS ps
+       ) AS team_name,
+       DATE(season.startDate, 'unixepoch') AS seasonStart,
+       DATE(season.endDate  , 'unixepoch') AS seasonEnd,
+       trs.wins,
+       trs.losses,
+       trs.ties,
+       IFNULL(
+         (SELECT MAX(pas.round)
+          FROM playoffParticipant_summary AS pas
+          WHERE pas.season_id = trs.season_id
+            AND pas.franchise_id = trs.franchise_id)
+         , 0
+       ) AS finalPlayoffRound,
+       season.length - season.regularSeason_length AS totalPlayoffRounds,
+       IFNULL(
+         (SELECT TRUE
+          FROM champion
+          WHERE champion.franchise_id = trs.franchise_id
+            AND champion.season_id = trs.season_id),
+         , FALSE
+       ) AS championBool
+     FROM team_regularSeason_summary AS trs
        INNER JOIN season
-         ON season.id = ps.season_id
-       LEFT JOIN playoffDetails AS playoff
-         ON playoff.season_id = ps.season_id;
-       
+         ON season.id = trs.season_id
+
 
 CREATE VIEW view_emptyTeamGames (
   

@@ -1,4 +1,4 @@
-CREATE TABLE playoff_summary (
+CREATE TABLE playoffParticipant_summary (
     season_id     INTEGER NOT NULL REFERENCES season,
     round         INTEGER NOT NULL
         CHECK (round > 0),
@@ -7,10 +7,13 @@ CREATE TABLE playoff_summary (
 ) STRICT, WITHOUT ROWID;
 
 WITH 
-  playoffs AS (
+  playoffGame AS (
     SELECT 
       game.season_id,
-      game.stageNumber,
+      DENSE_RANK() OVER (
+        PARTITION BY game.season_id
+        ORDER BY game.stageNumber
+      ) AS round,
       home_id,
       away_id
     FROM game
@@ -19,30 +22,24 @@ WITH
           AND stage.season_id = game.season_id
           AND stage.isPlayoff = TRUE
   )
-INSERT INTO playoff_summary
+INSERT INTO playoffParticipant_summary
     (season_id, round, franchise_id)
   SELECT
     season_id,
-    DENSE_RANK() OVER (
-      PARTITION BY season_id
-      ORDER BY stageNumber
-    ),
+    round,
     home_id AS franchise_id
-  FROM playoffs
+  FROM playoffGame
 
   UNION
 
   SELECT
     season_id,
-    DENSE_RANK() OVER (
-      PARTITION BY season_id
-      ORDER BY stageNumber
-    ),
+    round,
     away_id AS franchise_id
-  FROM playoffs;
+  FROM playoffGame;
 
 
-CREATE TABLE performance_summary (
+CREATE TABLE team_regularSeason_summary (
     franchise_id      INTEGER NOT NULL REFERENCES franchise,
     season_id         INTEGER NOT NULL REFERENCES season,
     wins              INTEGER NOT NULL DEFAULT 0
@@ -50,9 +47,7 @@ CREATE TABLE performance_summary (
     losses            INTEGER NOT NULL DEFAULT 0
         CHECK (losses >= 0),
     ties              INTEGER NOT NULL DEFAULT 0
-        CHECK (ties >= 0),
-    finalPlayoffRound INTEGER NOT NULL DEFAULT 0
-        CHECK (finalPlayoffRound >= 0),
+        CHECK (ties >= 0)
   PRIMARY KEY(franchise_id, season_id)
 ) STRICT, WITHOUT ROWID;
 
@@ -89,22 +84,14 @@ WITH
       IIF(awayScore = homeScore, 1, 0) AS tie
     FROM regularSeasonGame         
   )
-INSERT INTO performance_summary
+INSERT INTO team_regularSeason_summary
     (franchise_id, season_id,
-     wins, losses, ties,
-     finalPlayoffRound) 
+     wins, losses, ties) 
   SELECT
     rsr.franchise_id,
     rsr.season_id,
     SUM(rsr.win),
     SUM(rsr.loss),
     SUM(rsr.tie),
-    IFNULL(
-      (SELECT MAX(playoff.round)
-       FROM playoff_summary AS playoff
-       WHERE playoff.season_id = rsr.season_id
-       AND playoff.franchise_id = rsr.franchise_id)
-      , 0
-    )
   FROM regularSeasonResult AS rsr
   GROUP BY franchise_id, season_id;
