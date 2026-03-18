@@ -18,7 +18,7 @@ The database enforces many things. For various reasons it does not enforce that 
 view_playoff_tournamentGames allows one to view playoff tournament results round by round. It makes allowances for multi-elimination tournaments and best-of playoff series. 
 
 #### Assumptions
-- Consolation games are not documented as playoff games (if at all).
+- Consolation games are not documented as playoff games (if at all)
 
 Users may need to tweak schema and/or application code depending on which assumptions are broken.
 
