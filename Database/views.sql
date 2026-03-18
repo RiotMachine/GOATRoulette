@@ -128,79 +128,27 @@ CREATE VIEW view_franchisePerformance (
   losses,
   ties,
   playoffPerformance
-) AS 
-     WITH
-       teamDetails AS (
-         SELECT
-           franchise_id, 
-           CONCAT(team.city, ' ', team.mascot)
-         FROM team
-           WHERE team.startDate <= season.startDate
-             AND (team.endDate >= season.startDate OR team.endDate IS NULL)
-         LIMIT 1
-       )
-       seasonDetails AS (
-         SELECT
-           id,
-           DATE(startDate, 'unixepoch'),
-           DATE(endDate, 'unixepoch')
-         FROM season
-       )
-       regularSeason AS (
-         SELECT * FROM stage
-           WHERE isPlayoff = FALSE
-           INNER JOIN game
-             ON game.stageNumber = stage.stageNumber
-               AND game.season_id = stage.season_id
+) AS SELECT
+       ps.franchise_id,
+       ps.season_id,
+       ( 
+        SELECT CONCAT(team.city, ' ', team.mascot)
+        FROM team
+          WHERE team.franchise_id = ps.franchise_id
+            AND team.startDate <= season.startDate
+            AND (team.endDate >= season.endDate OR team.endDate IS NULL)
+        LIMIT 1
        ),
-       awayRecord (
-           wins,
-           ties, 
-           losses
-       ) AS (
-         SELECT
-           SUM(IF(awayScore > homeScore, 1, 0)) OVER (
-             season_id 
-             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-           )
-         FROM game
-           WHERE game.away_id = team.franchise_id
-       )
-       homeRecord AS (
-         SELECT id FROM game
-           WHERE game.home_id = team.franchise_id
-       )
-       playoffs AS (
-        SELECT 
-          DENSE_RANK() OVER (
-            PARTITION BY season_id
-            ORDER BY stageNumber
-          )
-        FROM stage
-          WHERE isPlayoff = TRUE
-          INNER JOIN game
-          ON game.stageNumber = stage.stageNumber
-            AND game.season_id = stage.season_id
-       )
-       playoffRecord (
-         playoffRoundsattended,
-         playoffRoundsWon,
-         totalPossiblePlayoffRounds
-       ) AS (
-         SELECT 
-
-         FROM stage
-       )
+       DATE(season.startDate, 'unixepoch'),
+       DATE(season.endDate, 'unixepoch'),
+       ps.wins,
+       ps.losses,
+       ps.ties,
        
-     FROM season
-       INNER JOIN game
-         ON game.season_id = season.id
-       INNER JOIN franchise
-         ON franchise.id = game.home_id OR franchise.id = game.away_id
-       INNER JOIN team
-         ON team.franchise_id = franchise.id
-
-
+     FROM performance_summary AS ps
+       INNER JOIN season
+         ON season.id = ps.season_id
+       
 
 CREATE VIEW view_emptyTeamGames (
   
