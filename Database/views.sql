@@ -127,8 +127,22 @@ CREATE VIEW view_franchisePerformance (
   wins,
   losses,
   ties,
-  playoffPerformance
-) AS SELECT
+  finalPlayoffRound,
+  totalPlayoffRounds,
+  championBool
+) AS 
+     WITH
+       playoffDetails AS (
+         SELECT
+           season_id,
+           MAX(round) AS totalRounds
+         FROM playoff_summary
+         GROUP BY season_id
+       )
+       champion AS (
+         SELECT
+       )
+     SELECT
        ps.franchise_id,
        ps.season_id,
        IFNULL( 
@@ -137,17 +151,25 @@ CREATE VIEW view_franchisePerformance (
           WHERE team.franchise_id = ps.franchise_id
             AND team.startDate <= season.startDate
             AND (team.endDate >= season.endDate OR team.endDate IS NULL))
-          , 'No one team spans season'
+         , 'No one team spans season'
        ),
        DATE(season.startDate, 'unixepoch'),
        DATE(season.endDate, 'unixepoch'),
        ps.wins,
        ps.losses,
        ps.ties,
-       
+       ps.finalPlayoffRound,
+       playoffDetails.totalRounds,
+       IIF(
+         champion.id IS NOT NULL 
+           AND champion.id = ps.franchise_id,
+         TRUE, FALSE
+       )
      FROM performance_summary AS ps
        INNER JOIN season
          ON season.id = ps.season_id
+       LEFT JOIN playoffDetails AS playoff
+         ON playoff.season_id = ps.season_id;
        
 
 CREATE VIEW view_emptyTeamGames (
