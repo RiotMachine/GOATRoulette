@@ -117,9 +117,9 @@ WITH
     SELECT
       home_id AS franchise_id,
       season_id,
-      IF(homeScore > awayScore, 1, 0) AS win,
-      IF(homeScore < awayScore, 1, 0) AS loss,
-      IF(homeScore = awayScore, 1, 0) AS tie
+      IIF(homeScore > awayScore, 1, 0) AS win,
+      IIF(homeScore < awayScore, 1, 0) AS loss,
+      IIF(homeScore = awayScore, 1, 0) AS tie
     FROM regularSeasonGame
 
     UNION ALL
@@ -127,9 +127,9 @@ WITH
     SELECT
       away_id AS franchise_id,
       season_id,
-      IF(awayScore > homeScore, 1, 0) AS win,
-      IF(awayScore < homeScore, 1, 0) AS loss,
-      IF(awayScore = homeScore, 1, 0) AS tie
+      IIF(awayScore > homeScore, 1, 0) AS win,
+      IIF(awayScore < homeScore, 1, 0) AS loss,
+      IIF(awayScore = homeScore, 1, 0) AS tie
     FROM regularSeasonGame         
   )
 INSERT INTO performance_summary

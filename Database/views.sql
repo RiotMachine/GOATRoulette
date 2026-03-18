@@ -30,7 +30,7 @@ CREATE VIEW view_game (
        game.stageNumber,
        game.season_id, 
        DATE(game.startDate, 'unixepoch'), 
-       IF(atNeutralSite, 'Neutral site', homeTeam.city),
+       IIF(atNeutralSite, 'Neutral site', homeTeam.city),
        awayTeam.franchise_id,
        CONCAT(awayTeam.city, ' ', awayTeam.mascot), 
        game.awayScore,
@@ -56,11 +56,11 @@ CREATE VIEW view_game_generic
        time,
        location,
        MIN(away_id, home_id) AS team1_id,
-       IF (MIN(away_id, home_id) = away_id, awayTeam, homeTeam) AS team1_name,
-       IF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team1_score,
+       IIF (MIN(away_id, home_id) = away_id, awayTeam, homeTeam) AS team1_name,
+       IIF (MIN(away_id, home_id) = away_id, awayScore, homeScore) AS team1_score,
        MAX(away_id, home_id) AS team2_id,
-       IF (MAX(away_id, home_id) = away_id, awayTeam, homeTeam) AS team2_name,
-       IF (MAX(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
+       IIF (MAX(away_id, home_id) = away_id, awayTeam, homeTeam) AS team2_name,
+       IIF (MAX(away_id, home_id) = away_id, awayScore, homeScore) AS team2_score
      FROM view_game;
 
 
@@ -93,11 +93,11 @@ CREATE VIEW view_playoff_bracketGames (
        team1_score,
        team2_name,
        team2_score,
-       SUM(IF(team1_score > team2_score, 1, 0)) OVER (
+       SUM(IIF(team1_score > team2_score, 1, 0)) OVER (
          window_series
          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
        ),
-       SUM(IF(team1_score < team2_score, 1, 0)) OVER (
+       SUM(IIF(team1_score < team2_score, 1, 0)) OVER (
          window_series
          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
        )
