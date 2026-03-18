@@ -138,7 +138,7 @@ CREATE VIEW view_franchisePerformance (
             AND team.startDate <= season.startDate
             AND (team.endDate >= season.endDate OR team.endDate IS NULL))
           , 'No one team spans season'
-       ), 
+       ),
        DATE(season.startDate, 'unixepoch'),
        DATE(season.endDate, 'unixepoch'),
        ps.wins,
