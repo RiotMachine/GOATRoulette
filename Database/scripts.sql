@@ -127,4 +127,4 @@ INSERT INTO champion
         team2_id
       END
   FROM championshipRecord
-  WHERE team1_wins != team2_wins
+  WHERE team1_wins != team2_wins;
