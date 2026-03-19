@@ -79,16 +79,41 @@ INSERT INTO team_regularSeason_summary
   GROUP BY franchise_id, season_id;
 
 
--- insert playoff winners into Champion
--- vulnerable to 'final' rounds with >2 participants
+-- insert playoff winner into Champion
 WITH
-  championshipStage AS (
+  finalPlayoffStage AS (
     SELECT
-      MAX(stageNumber) AS stage,
-      season_id
+      season_id,
+      MAX(stageNumber) AS stage
     FROM stage
       WHERE isPlayoff = TRUE
     GROUP BY season_id
+  ),
+  championStage AS (
+    SELECT 
+      season_id,
+      stageNumber AS stage
+    FROM (
+      SELECT
+        game.season_id,
+        stageNumber,
+        home_id AS team_id
+      FROM game
+        INNER JOIN finalPlayoffStage as fps
+          ON game.season_id = fps.season_id
+            AND game.stageNumber = fps.stage 
+      UNION
+      SELECT
+        game.season_id,
+        stageNumber,
+        away_id AS team_id
+      FROM game
+        INNER JOIN finalPlayoffStage as fps
+          ON game.season_id = fps.season_id
+            AND game.stageNumber = fps.stage
+    )
+    GROUP BY season_id, stageNumber
+    HAVING COUNT(team_id) = 2
   ),
   championStageGame AS (
     SELECT
@@ -97,7 +122,7 @@ WITH
       vgg.team1_score,
       vgg.team2_id,
       vgg.team2_score
-    FROM championshipStage as cs
+    FROM championStage as cs
       INNER JOIN view_game_generic AS vgg
         ON vgg.season_id = cs.season_id
           AND vgg.stage = cs.stage
