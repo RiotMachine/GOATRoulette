@@ -156,7 +156,13 @@ CREATE VIEW view_franchisePerformance
             AND pas.franchise_id = trs.franchise_id)
          , 0
        ) AS finalPlayoffRound,
-       season.length - season.regularSeason_length AS totalPlayoffRounds,
+       (SELECT 
+          SUM(
+            IIF(stage.isPlayoff = TRUE, 1, 0)
+          )
+        FROM stage
+        WHERE stage.season_id = trs.season_id
+       ) AS totalPlayoffRounds,
        IFNULL(
          (SELECT TRUE
           FROM champion
