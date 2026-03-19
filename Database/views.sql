@@ -186,7 +186,7 @@ CREATE VIEW view_emptyTeamGames
            LEFT JOIN team AS homeTeam
              ON game.home_id = homeTeam.franchise_id
                AND game.startDate >= homeTeam.startDate
-               AND (game.startDate <= homeTeam.endDate OR homeTeam.endDate IS NULL);
+               AND (game.startDate <= homeTeam.endDate OR homeTeam.endDate IS NULL)
        )
      SELECT *
      FROM gameSynopsis
