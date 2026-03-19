@@ -172,7 +172,7 @@ CREATE TRIGGER tgr_mod_season_len
 CREATE TRIGGER tgr_new_stage_set_isPlayoff
   AFTER INSERT ON stage
     WHEN NEW.stageNumber >
-      (SELECT regularSeason_length FROM season WHERE id = NEW.season_id)
+      (SELECT defaultPlayoffBoundary FROM season WHERE id = NEW.season_id)
     BEGIN
       UPDATE stage SET isPlayoff = TRUE
         WHERE season_id = NEW.season_id
@@ -180,22 +180,22 @@ CREATE TRIGGER tgr_new_stage_set_isPlayoff
     END;
 
 CREATE TRIGGER tgr_mod_regularSeason_shorter_set_isPlayoff
-  AFTER UPDATE OF regularSeason_length ON season
-    WHEN NEW.regularSeason_length < OLD.regularSeason_length
+  AFTER UPDATE OF defaultPlayoffBoundary ON season
+    WHEN NEW.defaultPlayoffBoundary < OLD.defaultPlayoffBoundary
     BEGIN
       UPDATE stage SET isPlayoff = TRUE
-        WHERE stageNumber > NEW.regularSeason_length
-          AND stageNumber <= OLD.regularSeason_length
+        WHERE stageNumber > NEW.defaultPlayoffBoundary
+          AND stageNumber <= OLD.defaultPlayoffBoundary
           AND season_id = NEW.season_id;
     END;
 
 CREATE TRIGGER tgr_mod_seasonLength_longer_set_isPlayoff
-  AFTER UPDATE OF regularSeason_length ON season
-    WHEN NEW.regularSeason_length > OLD.regularSeason_length
+  AFTER UPDATE OF defaultPlayoffBoundary ON season
+    WHEN NEW.defaultPlayoffBoundary > OLD.defaultPlayoffBoundary
     BEGIN
       UPDATE stage SET isPlayoff = FALSE
-        WHERE stageNumber > OLD.regularSeason_length
-          AND stageNumber <= NEW.regularSeason_length
+        WHERE stageNumber > OLD.defaultPlayoffBoundary
+          AND stageNumber <= NEW.defaultPlayoffBoundary
           AND season_id = NEW.season_id;
     END;
 

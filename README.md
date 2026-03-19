@@ -17,6 +17,9 @@ Season and Champion are one-to-zero/one-to-many. We wanted to accomodate situati
 
 dBs should be instantiated schema -> summaryTables -> views -> triggers -> data.
 
+### Tables
+season.defaultPlayoffBoundary defines the boundary after which stage.isPlayoff defaults to TRUE. Modifying the boundary will trip triggers that set subsequent isPlayoff stages to TRUE. isPlayoff, however, is mutable on a stage-by-stage basis. Database and application playoff calculations are based on isPlayoff values, not defaultPlayoffBoundary. Therefore, having a non-playoff stage in the middle of playoff stages is permitted.
+
 ### Views
 Views exist to give topography to the flat database structure.
 
