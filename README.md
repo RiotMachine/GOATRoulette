@@ -22,7 +22,7 @@ Views exist to give topography to the flat database structure.
 
 The database enforces many things. For various reasons it does not enforce that a franchise has a team during the period it plays a game. Users should query view_emptyTeamGames to ensure all games have a team when they are played and/or use application logic to test for/enforce this.
 
-view_playoff_tournamentGames allows one to view playoff tournament results round by round. It makes allowances for multi-elimination tournaments and best-of playoff series. 
+view_playoff_bracketGames allows one to view playoff tournament results round by round. It makes allowances for multi-elimination tournaments and best-of playoff series. 
 
 ### Assumptions
 - Consolation games are not documented as playoff games (if at all)
