@@ -77,3 +77,54 @@ INSERT INTO team_regularSeason_summary
     SUM(rsr.tie)
   FROM regularSeasonResult AS rsr
   GROUP BY franchise_id, season_id;
+
+
+  -- insert playoff winners into Champion
+WITH
+  championshipStage AS (
+    SELECT
+      MAX(stageNumber) AS stage,
+      season_id
+    FROM stage
+      WHERE isPlayoff = TRUE
+    GROUP BY season_id
+  )
+  championStageGame AS (
+    SELECT
+      vgg.season_id
+      vgg.team1_id,
+      vgg.team1_score,
+      vgg.team2_id,
+      vgg.team2_score
+    FROM championshipStage as cs
+      INNER JOIN view_game_generic AS vgg
+        ON vgg.season_id = cs.season_id
+          AND vgg.stage = cs.stage
+  )
+  championshipRecord AS (
+    SELECT
+      season_id,
+      team1_id,
+      SUM(
+        IIF(team1_score > team2_score, 1, 0)
+      ) AS team1_wins,
+      team2_id,
+      SUM(
+        IIF(team1_score < team2_score, 1, 0)
+      ) AS team2_wins
+    FROM championStageGame
+    GROUP BY season_id
+  )
+INSERT INTO Champion
+    (season_id, franchise_id)
+  SELECT
+    season_id,
+    CASE team1_wins
+      WHEN > team2_wins
+        team1_id
+      WHEN < team2_wins
+        team2_id
+      ELSE
+        RAISE(ABORT, 
+        'Teams have same num of wins in championship round.')
+    FROM championshipRecord;
