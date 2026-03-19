@@ -88,10 +88,10 @@ WITH
     FROM stage
       WHERE isPlayoff = TRUE
     GROUP BY season_id
-  )
+  ),
   championStageGame AS (
     SELECT
-      vgg.season_id
+      vgg.season_id,
       vgg.team1_id,
       vgg.team1_score,
       vgg.team2_id,
@@ -100,7 +100,7 @@ WITH
       INNER JOIN view_game_generic AS vgg
         ON vgg.season_id = cs.season_id
           AND vgg.stage = cs.stage
-  )
+  ),
   championshipRecord AS (
     SELECT
       season_id,
@@ -115,16 +115,15 @@ WITH
     FROM championStageGame
     GROUP BY season_id
   )
-INSERT INTO Champion
+INSERT INTO champion
     (season_id, franchise_id)
   SELECT
     season_id,
-    CASE team1_wins
-      WHEN > team2_wins
-        team1_id
-      WHEN < team2_wins
-        team2_id
+    CASE
+      WHEN team1_wins > team2_wins
+        THEN team1_id
       ELSE
-        RAISE(ABORT, 
-        'Teams have same num of wins in championship round.')
-    FROM championshipRecord;
+        team2_id
+      END
+  FROM championshipRecord
+  WHERE team1_wins != team2_wins
