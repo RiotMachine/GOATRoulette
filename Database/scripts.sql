@@ -79,7 +79,8 @@ INSERT INTO team_regularSeason_summary
   GROUP BY franchise_id, season_id;
 
 
-  -- insert playoff winners into Champion
+-- insert playoff winners into Champion
+-- vulnerable to 'final' rounds with >2 participants
 WITH
   championshipStage AS (
     SELECT
@@ -113,7 +114,7 @@ WITH
         IIF(team1_score < team2_score, 1, 0)
       ) AS team2_wins
     FROM championStageGame
-    GROUP BY season_id
+    GROUP BY season_id, team1_id, team2_id
   )
 INSERT INTO champion
     (season_id, franchise_id)
