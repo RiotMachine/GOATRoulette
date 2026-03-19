@@ -1,4 +1,4 @@
--- Season | Stage(asc) | isPlayoff | Game
+-- Season | Stage | isPlayoff | Game
 CREATE VIEW view_databaseFlow (
     season_id,
     stage_number,
@@ -13,6 +13,7 @@ CREATE VIEW view_databaseFlow (
           AND stage.stageNumber = game.stageNumber;
 
 
+-- Pretty-prints game details
 CREATE VIEW view_game (
     id,
     stage,
@@ -48,6 +49,9 @@ CREATE VIEW view_game (
            AND (game.startDate <= homeTeam.endDate OR homeTeam.endDate IS NULL);
 
 
+-- Removes home/away team distinction
+-- All matchups are head-to-head so one team_id will consistently
+--   be less then another's even if they swap home and away
 CREATE VIEW view_game_generic
   AS SELECT
        id,
@@ -72,6 +76,7 @@ CREATE VIEW view_game_generic
      FROM view_game;
 
 
+-- Pretty-prints game-by-game playoff results
 CREATE VIEW view_playoff_bracketGames (
     game_id,
     round,
@@ -125,8 +130,8 @@ CREATE VIEW view_playoff_bracketGames (
      );
 
 
--- Team | Season start | Season end | Regular szn wins |
--- Reg szn losses | Playoff performance
+-- Pretty-prints season performance by franchise and season
+-- Team details | Regular season record | Playoff performance
 CREATE VIEW view_franchisePerformance
   AS SELECT
        trs.franchise_id,
@@ -164,6 +169,26 @@ CREATE VIEW view_franchisePerformance
          ON season.id = trs.season_id;
 
 
-CREATE VIEW view_emptyTeamGames (
-  
-)
+-- Query to identify games not covered by a team
+CREATE VIEW view_emptyTeamGames 
+  AS WITH
+       gameSynopsis AS (
+         SELECT 
+           game.id AS game_id,
+           DATE(game.startDate, 'unixepoch') AS game_date,
+           awayTeam.franchise_id AS away_id,
+           homeTeam.franchise_id AS home_id
+         FROM game
+           LEFT JOIN team AS awayTeam
+             ON game.away_id = awayTeam.franchise_id
+               AND game.startDate >= awayTeam.startDate
+               AND (game.startDate <= awayTeam.endDate OR awayTeam.endDate IS NULL) 
+           LEFT JOIN team AS homeTeam
+             ON game.home_id = homeTeam.franchise_id
+               AND game.startDate >= homeTeam.startDate
+               AND (game.startDate <= homeTeam.endDate OR homeTeam.endDate IS NULL);
+       )
+     SELECT *
+     FROM gameSynopsis
+     WHERE away_id IS NULL
+       OR home_id IS NULL;

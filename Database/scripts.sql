@@ -1,11 +1,4 @@
-CREATE TABLE playoffParticipant_summary (
-    season_id     INTEGER NOT NULL REFERENCES season,
-    round         INTEGER NOT NULL
-        CHECK (round > 0),
-    franchise_id  INTEGER NOT NULL REFERENCES franchise,
-  PRIMARY KEY(season_id, round, franchise_id)
-) STRICT, WITHOUT ROWID;
-
+-- playoffParticipant_summary table setup
 WITH 
   playoffGame AS (
     SELECT 
@@ -39,18 +32,7 @@ INSERT INTO playoffParticipant_summary
   FROM playoffGame;
 
 
-CREATE TABLE team_regularSeason_summary (
-    franchise_id      INTEGER NOT NULL REFERENCES franchise,
-    season_id         INTEGER NOT NULL REFERENCES season,
-    wins              INTEGER NOT NULL DEFAULT 0
-        CHECK (wins >= 0),
-    losses            INTEGER NOT NULL DEFAULT 0
-        CHECK (losses >= 0),
-    ties              INTEGER NOT NULL DEFAULT 0
-        CHECK (ties >= 0),
-  PRIMARY KEY(franchise_id, season_id)
-) STRICT, WITHOUT ROWID;
-
+-- team_regularSeason_summary table setup
 WITH 
   regularSeasonGame AS (
     SELECT 
