@@ -39,13 +39,13 @@ CREATE UNIQUE INDEX idx_endDate_null
 
 
 CREATE TABLE season (
-    id                   INTEGER PRIMARY KEY,
-    regularSeason_length INTEGER NOT NULL
-        CHECK (regularSeason_length >= 0),
-    length               INTEGER NOT NULL
-        CHECK (length >= regularSeason_length),
-    startDate            INTEGER NOT NULL,
-    endDate              INTEGER NOT NULL
+    id                     INTEGER PRIMARY KEY,
+    defaultPlayoffBoundary INTEGER NOT NULL
+        CHECK (defaultPlayoffBoundary >= 0),
+    length                 INTEGER NOT NULL
+        CHECK (length >= defaultPlayoffBoundary),
+    startDate              INTEGER NOT NULL,
+    endDate                INTEGER NOT NULL
         CHECK (endDate > startDate)
 ) STRICT;
 
