@@ -108,11 +108,11 @@ CREATE VIEW view_playoff_bracketGames (
        team2_score,
        SUM(IIF(team1_score > team2_score, 1, 0)) OVER (
          window_series
-         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+         ROWS UNBOUNDED PRECEDING
        ),
        SUM(IIF(team1_score < team2_score, 1, 0)) OVER (
          window_series
-         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+         ROWS UNBOUNDED PRECEDING
        )
      FROM view_game_generic AS v_game
        INNER JOIN stage
