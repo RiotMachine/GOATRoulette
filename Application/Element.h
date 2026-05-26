@@ -43,9 +43,15 @@ struct Element
 struct Game : Element
 {
     using ID = ID<struct GameTag>;
+    struct 
+    {
+        Team::ID teamID{ };
+        int score{ };
+    }
 
     ID id{ };
-
+    T home{ };
+    T away{ };
 };
 
 struct Team : Element
@@ -66,7 +72,11 @@ struct Season : Element
 
 struct Stage : Element
 {
-    using IDPair = std::pair<Season::ID, int>;
+    struct IDPair
+    {
+        Season::ID seasonID{ };
+        int stageNumber{ };
+    };
 
     IDPair idPair{ };
 
