@@ -48,6 +48,9 @@ struct Game : Element
 
 struct Team : Element
 {
+    using ID = ID<struct TeamTag>;
+
+    ID id{ };
 
 };
 
@@ -58,6 +61,9 @@ struct Stage : Element
 
 struct Season : Element
 {
+    using ID = ID<struct SeasonTag>;
+
+    ID id{ };
 
 };
 
