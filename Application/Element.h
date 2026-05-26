@@ -1,7 +1,7 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
-#include <utility>
+#include "types.h"
 
 struct Element
 {
@@ -40,20 +40,6 @@ struct Element
     Source source{ model };
 };
 
-struct Game : Element
-{
-    using ID = ID<struct GameTag>;
-    struct 
-    {
-        Team::ID teamID{ };
-        int score{ };
-    }
-
-    ID id{ };
-    T home{ };
-    T away{ };
-};
-
 struct Team : Element
 {
     using ID = ID<struct TeamTag>;
@@ -75,11 +61,28 @@ struct Stage : Element
     struct IDPair
     {
         Season::ID seasonID{ };
-        int stageNumber{ };
+        int number{ };
     };
 
     IDPair idPair{ };
 
+};
+
+struct Game : Element
+{
+    using ID = ID<struct GameTag>;
+    struct Opponent
+    {
+        Team::ID teamID{ };
+        int score{ };
+    };
+
+    ID id{ };
+    Stage::IDPair stage{ };
+    Types::UnixTime startTime{ };
+    bool atNeutralSite{ };
+    Opponent home{ };
+    Opponent away{ };
 };
 
 #endif
