@@ -1,6 +1,8 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
+#include <utility>
+
 struct Element
 {
     enum Source
@@ -54,16 +56,19 @@ struct Team : Element
 
 };
 
-struct Stage : Element
-{
-
-};
-
 struct Season : Element
 {
     using ID = ID<struct SeasonTag>;
 
     ID id{ };
+
+};
+
+struct Stage : Element
+{
+    using IDPair = std::pair<Season::ID, int>;
+
+    IDPair idPair{ };
 
 };
 
