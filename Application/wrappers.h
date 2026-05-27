@@ -1,6 +1,8 @@
 #ifndef WRAPPERS_H
 #define WRAPPERS_H
 
+#include <atomic>
+
 namespace Wrapper
 {
     // typesafe IDs
@@ -26,7 +28,7 @@ namespace Wrapper
     private:
         // default state is invalid
         T m_val{ sentinel };
-        static inline T s_nextVal{ 1 };
+        static inline std::atomic<T> s_nextVal{ 1 };
     };
 
 }
