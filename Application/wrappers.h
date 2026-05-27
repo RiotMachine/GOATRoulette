@@ -26,7 +26,7 @@ namespace Wrapper
     private:
         // default state is invalid
         T m_val{ sentinel };
-        static T s_nextVal{ 1 };
+        static inline T s_nextVal{ 1 };
     };
 
 }
