@@ -5,6 +5,7 @@
 #include "wrappers.h"
 #include <cstdint>
 
+// Preventing Element instantiation would ruin inheritors' aggreg status
 struct Element
 {
     using IDType = std::int32_t;
