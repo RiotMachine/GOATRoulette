@@ -28,6 +28,7 @@ namespace Wrapper
     private:
         // default state is invalid
         T m_val{ sentinel };
+        // atomic prevents race conditions
         static inline std::atomic<T> s_nextVal{ 1 };
     };
 
