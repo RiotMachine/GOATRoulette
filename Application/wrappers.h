@@ -14,7 +14,8 @@ namespace Wrapper
         // allowing default constructor for sim objects
         ID() = default;
 
-        bool isValid() const { return m_val != s_invalidVal; }
+        static ID invalid() { return ID{ sentinel }; }
+        static ID next()    { return ID{ s_nextVal++ }; }
 
         // force explicit cast to integral
         explicit operator T() const { return m_val; }
@@ -23,10 +24,9 @@ namespace Wrapper
         friend bool operator!=(ID a, ID b) { return a.m_val != b.m_val; }
 
     private:
-        static constexpr T s_invalidVal{ sentinel };
         // default state is invalid
-        T m_val{ s_invalidVal };
-        static T s_nextVal{ ++s_nextVal };
+        T m_val{ sentinel };
+        static T s_nextVal{ 1 };
     };
 
 }

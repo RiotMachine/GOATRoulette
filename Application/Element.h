@@ -25,7 +25,7 @@ struct Team : Element
 {
     using ID = Wrapper::ID<struct TeamTag, IDType>;
 
-    ID id{ ID::s_nextVal };
+    ID id{ ID::next() };
 
 };
 
@@ -33,7 +33,7 @@ struct Season : Element
 {
     using ID = Wrapper::ID<struct SeasonTag, IDType>;
 
-    ID id{ };
+    ID id{ ID::next() };
 
 };
 
@@ -58,7 +58,7 @@ struct Game : Element
         int score{ };
     };
 
-    ID id{ };
+    ID id{ ID::next() };
     Stage::IDPair stage{ };
     Alias::UnixTime startTime{ };
     bool atNeutralSite{ };
