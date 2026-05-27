@@ -1,9 +1,9 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef ALIASES_H
+#define ALIASES_H
 
 #include <chrono>
 
-namespace Types 
+namespace Alias 
 {
     using UnixTime = std::chrono::system_clock::time_point;
 

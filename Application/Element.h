@@ -1,10 +1,14 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
-#include "types.h"
+#include "aliases.h"
+#include "wrappers.h"
+#include <cstdint>
 
 struct Element
 {
+    using IDType = std::int32_t;
+
     enum Source
     {
         database,
@@ -12,45 +16,22 @@ struct Element
         user
     };
 
-    // nice solution to make IDs typesafe
-    // https://www.ilikebigbits.com/2014_05_06_type_safe_handles.html
-    template <typename Tag>
-    struct ID
-    {
-    public:
-        // explicit prevents implicit conversion of ints
-        explicit ID(int x) : m_val{ x } {}
-        // allowing default constructor for sim objects
-        ID() = default;
-
-        bool isValid() const { return m_val != s_invalidVal; }
-
-        // force explicit cast to int
-        explicit operator int() const { return m_val; }
-
-        friend bool operator==(ID a, ID b) { return a.m_val == b.m_val; }
-        friend bool operator!=(ID a, ID b) { return a.m_val != b.m_val; }
-
-    private:
-        // default state is invalid
-        static constexpr int s_invalidVal{ -1 };
-        int m_val{ s_invalidVal };
-    };
-
     Source source{ model };
 };
 
+// IDs map to SQL IDs or array indices at crossover points
+
 struct Team : Element
 {
-    using ID = ID<struct TeamTag>;
+    using ID = Wrapper::ID<struct TeamTag, IDType>;
 
-    ID id{ };
+    ID id{ ID::s_nextVal };
 
 };
 
 struct Season : Element
 {
-    using ID = ID<struct SeasonTag>;
+    using ID = Wrapper::ID<struct SeasonTag, IDType>;
 
     ID id{ };
 
@@ -70,7 +51,7 @@ struct Stage : Element
 
 struct Game : Element
 {
-    using ID = ID<struct GameTag>;
+    using ID = Wrapper::ID<struct GameTag, IDType>;
     struct Opponent
     {
         Team::ID teamID{ };
@@ -79,7 +60,7 @@ struct Game : Element
 
     ID id{ };
     Stage::IDPair stage{ };
-    Types::UnixTime startTime{ };
+    Alias::UnixTime startTime{ };
     bool atNeutralSite{ };
     Opponent home{ };
     Opponent away{ };
