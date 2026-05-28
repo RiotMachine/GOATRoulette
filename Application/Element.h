@@ -44,7 +44,6 @@ struct Season : Element
     using ID = Wrapper::ID<struct SeasonTag, IDType>;
 
     ID id{ };
-    int stages{ };
     Alias::UnixTime startDate{ };
     Alias::UnixTime endDate{ };
 };
