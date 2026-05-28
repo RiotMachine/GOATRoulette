@@ -24,15 +24,15 @@ struct Element
 };
 
 
-// Team maps to SQL.franchise
-// Team takes most-recent SQL.team info as printing data
-/// determined by most-recent startDate
-struct Team : Element
+// Maps to SQL.franchise
+// Takes most-recent SQL.team info as printing data
+/// determined by most-recent team.startDate w/in config window
+struct Franchise : Element
 {
-    static_assert(std::is_aggregate_v<Team>);
-    using ID = Wrapper::ID<struct TeamTag, IDType>;
+    static_assert(std::is_aggregate_v<Franchise>);
+    using ID = Wrapper::ID<struct FranchiseTag, IDType>;
 
-    ID id{ ID::next() };
+    ID id{ };
     std::string city{ };
     std::string mascot{ };
     Alias::UnixTime startDate{ };
@@ -43,7 +43,7 @@ struct Season : Element
     static_assert(std::is_aggregate_v<Season>);
     using ID = Wrapper::ID<struct SeasonTag, IDType>;
 
-    ID id{ ID::next() };
+    ID id{ };
     int stages{ };
     Alias::UnixTime startDate{ };
     Alias::UnixTime endDate{ };
@@ -68,11 +68,11 @@ struct Game : Element
     using ID = Wrapper::ID<struct GameTag, IDType>;
     struct Opponent
     {
-        Team::ID teamID{ };
+        Franchise::ID franchiseID{ };
         int score{ };
     };
 
-    ID id{ ID::next() };
+    ID id{ };
     Stage::IDPair stage{ };
     Alias::UnixTime startTime{ };
     bool atNeutralSite{ };
