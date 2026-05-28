@@ -33,7 +33,7 @@ view_playoff_bracketGames allows one to view playoff tournament results round by
 Users may need to tweak schema and/or application code depending on which assumptions are broken.
 
 ## C++
-GOAT assumes C++17.
+GOAT assumes C++17, though it does rely on C++20's std::chrono improvements.
 
 ## Iteration 1
 C++ SQL wrapper for stats querying
