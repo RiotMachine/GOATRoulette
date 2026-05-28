@@ -4,6 +4,7 @@
 #include "aliases.h"
 #include "wrappers.h"
 #include <cstdint>
+#include <string>
 // for std::is_aggregate
 #include <type_traits>
 
