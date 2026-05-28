@@ -5,8 +5,8 @@
 #include "wrappers.h"
 #include <cstdint>
 #include <string>
-// for std::is_aggregate
-#include <type_traits>
+#include <type_traits> // for std::is_aggregate
+
 
 // Preventing Element instantiation would ruin inheritors' aggreg status
 struct Element
