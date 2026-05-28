@@ -38,6 +38,7 @@ CREATE UNIQUE INDEX idx_endDate_null
   ON team(franchise_id) WHERE endDate IS NULL;
 
 
+-- length is in terms of stages
 CREATE TABLE season (
     id                     INTEGER PRIMARY KEY,
     defaultPlayoffBoundary INTEGER NOT NULL
