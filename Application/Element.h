@@ -4,9 +4,9 @@
 #include "aliases.h"
 #include "wrappers.h"
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <type_traits> // for std::is_aggregate
-
 
 // Preventing Element instantiation would ruin inheritors' aggreg status
 struct Element
@@ -24,6 +24,8 @@ struct Element
     Source source{ model };
 };
 
+// Default plan is to enforce invariants at boundaries
+// Leaving seemingly-derived fields for invariant purposes
 
 // Maps to SQL.franchise
 // Takes most-recent SQL.team info as printing data
@@ -37,8 +39,11 @@ struct Franchise : Element
     std::string city{ };
     std::string mascot{ };
     Alias::UnixTime startDate{ };
+    std::optional<Alias::UnixTime> endDate{ };
 };
 
+// keeping Season and Stage separate for now
+// seasons owning stages complicates stage-specific logic
 struct Season : Element
 {
     static_assert(std::is_aggregate_v<Season>);
@@ -47,6 +52,8 @@ struct Season : Element
     ID id{ };
     Alias::UnixTime startDate{ };
     Alias::UnixTime endDate{ };
+    int maxStage{ };
+    int playoffStageBoundary{ };
 };
 
 struct Stage : Element
