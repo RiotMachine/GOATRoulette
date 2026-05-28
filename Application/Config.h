@@ -7,8 +7,7 @@
 struct Config
 {
     std::string dBPath{ };
-    std::chrono::hours defaultLookback{ };
-
+    std::chrono::days defaultLookback{ };
 };
 
 #endif
