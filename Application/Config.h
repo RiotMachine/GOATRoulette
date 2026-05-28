@@ -6,7 +6,7 @@
 
 struct Config
 {
-    std::string dBPath{ };
+    std::string dbPath{ };
     std::chrono::days defaultLookback{ };
 };
 
