@@ -72,11 +72,11 @@ struct Game : Element
     };
 
     ID id{ };
-    Stage::IDPair stage{ };
-    Alias::UnixTime startTime{ };
-    bool atNeutralSite{ };
     Opponent home{ };
     Opponent away{ };
+    bool atNeutralSite{ };
+    Stage::IDPair stage{ };
+    Alias::UnixTime startTime{ };
 };
 
 #endif
