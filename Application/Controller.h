@@ -17,12 +17,6 @@ public:
         
     }
 
-    ~Controller()
-    {
-    
-    }
-
-
     Element pull( )
     {
 
@@ -36,8 +30,8 @@ public:
 
 private:
     SQLMap sqlMap{ };
-    DataMap dataMap{ };
-    std::array<Repository, > repo{ };
+    ModelMap modelMap{ };
+    Warehouse warehouse{ };
     std::chrono::days lookback{ };
 
 };
