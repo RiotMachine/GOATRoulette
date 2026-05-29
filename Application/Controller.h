@@ -29,10 +29,10 @@ public:
 
 
 private:
-    SQLMap sqlMap{ };
-    ModelMap modelMap{ };
-    Warehouse warehouse{ };
-    std::chrono::days lookback{ };
+    SQLMap m_sqlMap{ };
+    ModelMap m_modelMap{ };
+    Warehouse m_warehouse{ };
+    std::chrono::days m_lookback{ };
 
 };
 
