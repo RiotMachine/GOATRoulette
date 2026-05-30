@@ -33,8 +33,8 @@ view_playoff_bracketGames allows one to view playoff tournament results round by
 Users may need to tweak schema and/or application code depending on which assumptions are broken.
 
 ## C++
-GOAT is targetting c++17.
-Current c++20 dependencies:
+GOAT is targetting C++17.
+Current C++20 dependencies:
 - std::chrono::days
     - Config.h
     - Controller.h
